@@ -4,24 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class Booking extends Model
 {
     use HasFactory;
 
-    /**
-     * الحقول التي يمكن تعبئتها وحفظها في قاعدة البيانات.
-     * تأكد أن أسماء هذه الحقول تطابق تماماً أسماء الأعمدة في جدول bookings.
-     */
+    // اسم الجدول في قاعدة البيانات
+    protected $table = 'bookings';
+
+    // الحقول المسموح بتعبئتها (لحماية النظام من Mass Assignment)
     protected $fillable = [
-        'customer_name', 
-        'amount', 
-        'status', 
-        'user_id'
+        'customer_name',
+        'phone_number',
+        'customer_email',
+        'status',
+        'amount',
+        'store_id',
+        'user_id',
     ];
 
     /**
-     * علاقة الحجز بالمستخدم: كل حجز يتبع لمستخدم واحد.
+     * علاقة الحجز بالمستخدم (صاحب الحساب/المستأجر)
+     * كل حجز ينتمي لمستخدم واحد فقط
      */
     public function user()
     {

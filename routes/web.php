@@ -2,40 +2,34 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| هنا يتم تسجيل جميع مسارات الويب الخاصة بمشروعك.
-|
 */
 
-// 1. الصفحة الرئيسية للموقع
+// الصفحة الرئيسية (يمكنك تغييرها لتكون صفحة هبوط لاحقاً)
 Route::get('/', function () {
     return view('welcome');
 });
 
-// 2. مسارات المصادقة (تسجيل الدخول، التسجيل، الخروج)
+// روابط نظام المصادقة (تسجيل الدخول، الاشتراك، استعادة كلمة المرور)
 Auth::routes();
 
-// 3. مسارات الحجوزات (تطلب تسجيل الدخول)
-// تشمل: index, create, store, edit, update, destroy
-Route::resource('bookings', BookingController::class)->middleware('auth');
-
-// 4. مسارات الدفع عبر Stripe
+// روابط النظام المحمية - لا يمكن الدخول إليها إلا بعد تسجيل الدخول
 Route::middleware(['auth'])->group(function () {
     
-    // صفحة الدفع الخاصة بكل حجز
-    Route::get('/payment/{id}', [PaymentController::class, 'payment'])->name('stripe.payment');
-    
-    // معالجة عملية الدفع وتحديث الحالة
-    Route::post('/stripe-payment', [PaymentController::class, 'postPayment'])->name('stripe.post');
-    
-});
+    // 1. رابط تصدير البيانات إلى Excel (يجب أن يكون قبل الـ Resource ليعمل بشكل صحيح)
+    Route::get('/bookings/export', [BookingController::class, 'exportExcel'])->name('bookings.export');
 
-// 5. صفحة الـ Dashboard الافتراضية (اختياري)
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    // 2. رابط تحديث حالة الحجز (مقبول / ملغي)
+    Route::patch('/bookings/{id}/status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+
+    // 3. روابط العمليات الأساسية (عرض، إضافة، تعديل، حذف)
+    Route::resource('bookings', BookingController::class);
+
+    // يمكنك إضافة رابط الصفحة الشخصية للمستأجر هنا مستقبلاً
+    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+});

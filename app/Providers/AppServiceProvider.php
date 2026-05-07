@@ -2,29 +2,38 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
-class AppServiceProvider extends ServiceProvider
+class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * المسار الذي يتم توجيه المستخدمين إليه بعد تسجيل الدخول.
+     * تم تعديله من /dashboard إلى /bookings
+     *
+     * @var string
      */
-    public function register(): void
-    {
-        //
-    }
+    public const HOME = '/bookings';
 
     /**
-     * Bootstrap any application services.
+     * تحديد الروابط وبناء معدلات التحديد (Rate Limiters).
      */
     public function boot(): void
     {
-        // 1. حل مشكلة طول المفاتيح في بعض قواعد البيانات (اختياري لكنه مفيد)
-        Schema::defaultStringLength(191);
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
-        // 2. إذا كنت تريد توجيه المستخدم بعد تسجيل الدخول من هنا 
-        // (في حال لم تجد ملف RouteServiceProvider)
+        $this->routes(function () {
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+        });
     }
 }
