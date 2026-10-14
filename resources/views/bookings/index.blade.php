@@ -110,36 +110,31 @@
                             <td>{{ number_format($booking->amount, 2) }} ريال</td>
                             <td>{{ $booking->booking_date }}</td>
                             <td class="px-4 py-3">
-                                <!-- أزرار التحكم تظهر فقط للأدمن -->
-                                @if(auth()->check() && auth()->user()->role === 'admin')
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <!-- 1. زر التعديل المحمي بكلمة السر -->
-                                        <form action="{{ route('bookings.edit', $booking->id) }}" 
-                                              method="GET" 
-                                              class="d-inline" 
-                                              onsubmit="return confirmAdminPasswordForEdit(event, this);">
-                                            <input type="hidden" name="admin_password" class="admin-password-input-edit">
-                                            <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill px-3">
-                                                <i class="fas fa-edit"></i> تعديل
-                                            </button>
-                                        </form>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <!-- 1. زر التعديل المحمي بكلمة السر -->
+                                    <form action="{{ route('bookings.edit', $booking->id) }}" 
+                                          method="GET" 
+                                          class="d-inline" 
+                                          onsubmit="return confirmAdminPasswordForEdit(event, this);">
+                                        <input type="hidden" name="admin_password" class="admin-password-input-edit">
+                                        <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill px-3">
+                                            <i class="fas fa-edit"></i> تعديل
+                                        </button>
+                                    </form>
 
-                                        <!-- 2. زر الحذف المحمي بكلمة السر -->
-                                        <form action="{{ route('bookings.destroy', $booking->id) }}" 
-                                              method="POST" 
-                                              class="d-inline" 
-                                              onsubmit="return confirmAdminPasswordForDelete(event, this);">
-                                            @csrf 
-                                            @method('DELETE')
-                                            <input type="hidden" name="admin_password" class="admin-password-input-delete">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                                <i class="fas fa-trash"></i> حذف
-                                            </button>
-                                        </form>
-                                    </div>
-                                @else
-                                    <span class="text-muted small">للمدير فقط</span>
-                                @endif
+                                    <!-- 2. زر الحذف المحمي بكلمة السر -->
+                                    <form action="{{ route('bookings.destroy', $booking->id) }}" 
+                                          method="POST" 
+                                          class="d-inline" 
+                                          onsubmit="return confirmAdminPasswordForDelete(event, this);">
+                                        @csrf 
+                                        @method('DELETE')
+                                        <input type="hidden" name="admin_password" class="admin-password-input-delete">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -195,7 +190,7 @@
 function confirmAdminPasswordForDelete(event, form) {
     event.preventDefault(); // إيقاف الحذف الفوري
 
-    let password = prompt("⚠️ إجراء محمي! يرجى إدخال كلمة مرور المدير لتأكيد الحذف:");
+    let password = prompt("⚠️ إجراء محمي! يرجى إدخال كلمة المرور لتأكيد الحذف:");
 
     if (password !== null && password.trim() !== "") {
         form.querySelector('.admin-password-input-delete').value = password;
@@ -208,7 +203,7 @@ function confirmAdminPasswordForDelete(event, form) {
 function confirmAdminPasswordForEdit(event, form) {
     event.preventDefault(); // إيقاف الانتقال الفوري
 
-    let password = prompt("🔒 إجراء محمي! يرجى إدخال كلمة مرور المدير للانتقال لتعديل الحجز:");
+    let password = prompt("🔒 إجراء محمي! يرجى إدخال كلمة المرور للانتقال لتعديل الحجز:");
 
     if (password !== null && password.trim() !== "") {
         form.querySelector('.admin-password-input-edit').value = password;
