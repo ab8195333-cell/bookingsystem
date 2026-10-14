@@ -23,12 +23,14 @@ Route::middleware(['auth'])->group(function () {
     // العمليات على الحجوزات (الإضافة، التعديل، والحذف)
     Route::post('/bookings/store', [BookingController::class, 'store'])->name('bookings.store');
     
+    
     // مسارات التعديل المطلوبة بالاسم الصحيح bookings.edit و bookings.update
     Route::get('/bookings/{id}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
     Route::put('/bookings/{id}', [BookingController::class, 'update'])->name('bookings.update');
+     Route::get('/bookings/report', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf');
     
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
-    Route::get('/bookings/report', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf_all');
+   
 
     // مسار الدفع والاشتراكات
     Route::get('/subscription/checkout', [BookingController::class, 'checkout'])->name('subscription.checkout');
