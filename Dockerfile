@@ -50,5 +50,5 @@ RUN chmod -R 777 storage bootstrap/cache
 # منفذ التشغيل
 EXPOSE 10000
 
-# أمر التشغيل النهائي للمشروع
-CMD php artisan config:cache && php artisan route:cache && php artisan serve --host=0.0.0.0 --port=10000
+# أمر التشغيل النهائي الآمن
+CMD php artisan config:clear && php artisan route:clear && php artisan serve --host=0.0.0.0 --port=10000
