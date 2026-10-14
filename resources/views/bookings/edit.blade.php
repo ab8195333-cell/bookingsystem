@@ -1,37 +1,47 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container" dir="rtl">
+<div class="container py-4 text-end" dir="rtl">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0" style="border-radius: 20px;">
-                <div class="card-header bg-primary text-white p-3" style="border-radius: 20px 20px 0 0;">
-                    <h5 class="mb-0 text-center">تعديل بيانات الحجز رقم #{{ $booking->id }}</h5>
-                </div>
-                <div class="card-body p-4">
-                    <form action="{{ route('bookings.update', $booking->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h4 class="fw-bold mb-4">تعديل بيانات الحجز</h4>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">اسم العميل</label>
-                            <input type="text" name="customer_name" class="form-control" value="{{ $booking->customer_name }}" required>
-                        </div>
+                @if(session('error'))
+                    <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">حالة الحجز</label>
-                            <select name="status" class="form-select">
-                                <option value="pending" {{ $booking->status == 'pending' ? 'selected' : '' }}>بانتظار الدفع</option>
-                                <option value="completed" {{ $booking->status == 'completed' ? 'selected' : '' }}>تم الدفع</option>
-                            </select>
-                        </div>
+                <form action="{{ route('bookings.update', $booking->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
 
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-success py-2 fw-bold" style="border-radius: 12px;">حفظ التغييرات</button>
-                            <a href="{{ route('bookings.index') }}" class="btn btn-light py-2" style="border-radius: 12px;">إلغاء</a>
-                        </div>
-                    </form>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">اسم العميل</label>
+                        <input type="text" name="customer_name" class="form-control" value="{{ $booking->customer_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الخدمة</label>
+                        <input type="text" name="service_name" class="form-control" value="{{ $booking->service_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">المبلغ</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" value="{{ $booking->amount }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">التاريخ</label>
+                        <input type="date" name="booking_date" class="form-control" value="{{ $booking->booking_date }}" required>
+                    </div>
+
+                    <div class="mb-4 bg-light p-3 rounded-3 border">
+                        <label class="form-label fw-bold text-danger"><i class="fas fa-lock me-1"></i> كلمة مرور المدير لتأكيد التعديل:</label>
+                        <input type="password" name="admin_password" class="form-control" placeholder="أدخل كلمة مرور الحساب" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning rounded-pill w-100 fw-bold">حفظ التعديلات</button>
+                </form>
             </div>
         </div>
     </div>

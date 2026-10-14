@@ -5,7 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+
+
+
+
+
+
+
 
 class BookingController extends Controller
 {
@@ -64,11 +72,7 @@ class BookingController extends Controller
         return $pdf->download('report.pdf');
     }
 
-    public function destroy($id)
-    {
-        Booking::where('id', $id)->where('user_id', Auth::id())->delete();
-        return redirect()->back();
-    }
+   
 
 public function checkout()
     {
@@ -102,5 +106,71 @@ public function checkout()
             return back()->withErrors(['error' => 'خطأ في اتصال بوابة الدفع: ' . $e->getMessage()]);
         }
     }
+
+
+
+
+
+
+public function destroy(Request $request, $id)
+{
+    // 1. التحقق من صلاحية الأدمن
+    if (!auth()->check() || auth()->user()->role !== 'admin') {
+        abort(403, 'غير مصرح لك بالوصول.');
+    }
+
+    // 2. التحقق هل أدخل كلمة المرور وهل هي صحيحة بحسب حساب الأدمن المسجل
+    if (!$request->filled('admin_password') || !Hash::check($request->admin_password, Auth::user()->password)) {
+        return redirect()->back()->with('error', '❌ كلمة المرور غير صحيحة! لم يتم الحذف.');
+    }
+
+    // 3. تنفيذ الحذف عند مطابقة كلمة المرور
+    $booking = Booking::findOrFail($id);
+    $booking->delete();
+
+    return redirect()->back()->with('success', '✅ تم حذف الحجز بنجاح.');
+}
+
+
+
+
+// 1. عرض صفحة التعديل (أو فحص كلمة السر أولاً)
+public function edit(Request $request, $id)
+{
+    // التأكد أن المستخدم أدمن
+    if (!auth()->check() || auth()->user()->role !== 'admin') {
+        abort(403, 'غير مصرح لك.');
+    }
+
+    $booking = Booking::findOrFail($id);
+    return view('bookings.edit', compact('booking'));
+}
+
+// 2. معالجة وتحديث البيانات مع فحص كلمة المرور
+public function update(Request $request, $id)
+{
+    if (!auth()->check() || auth()->user()->role !== 'admin') {
+        abort(403, 'غير مصرح لك.');
+    }
+
+    // التحقق من كلمة المرور
+    if (!$request->filled('admin_password') || !Hash::check($request->admin_password, Auth::user()->password)) {
+        return redirect()->back()->with('error', '❌ كلمة المرور غير صحيحة، فشل التعديل!');
+    }
+
+    // التحديث
+    $booking = Booking::findOrFail($id);
+    $booking->update([
+        'customer_name' => $request->customer_name,
+        'service_name'  => $request->service_name,
+        'amount'        => $request->amount,
+        'booking_date'  => $request->booking_date,
+    ]);
+
+    return redirect()->route('bookings.index')->with('success', '✅ تم تعديل الحجز بنجاح.');
+}
+
+
+
 
 }

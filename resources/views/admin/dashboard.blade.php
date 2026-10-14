@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | Pro-Booking SaaS</title>
-    <!-- Bootstrap 5 RTL -->
+    <title>لوحة التحكم الشاملة | Pro-Booking SaaS</title>
+    <!-- Bootstrap 5 RTL CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -76,18 +76,9 @@
                     <a class="nav-link active" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-chart-pie"></i> الرئيسية</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fa-solid fa-users"></i> المستخدمين</a>
+                    <a class="nav-link" href="{{ route('bookings.index') }}"><i class="fa-solid fa-bookmark"></i> إدارة الحجوزات</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('bookings.index') }}"><i class="fa-solid fa-bookmark"></i> الحجوزات</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fa-solid fa-credit-card"></i> الاشتراكات</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fa-solid fa-sliders"></i> الإعدادات</a>
-                </li>
-                <li class="nav-item mt-4">
                     <a class="nav-link text-danger" href="{{ route('bookings.index') }}"><i class="fa-solid fa-arrow-right-from-bracket"></i> العودة للموقع</a>
                 </li>
             </ul>
@@ -110,11 +101,26 @@
             <!-- محتوى اللوحة -->
             <div class="p-4">
 
+                <!-- تنبيهات النجاح أو الخطأ -->
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
                 <!-- بطاقة الترحيب -->
                 <div class="alert alert-primary border-0 shadow-sm d-flex justify-content-between align-items-center mb-4 p-3 rounded-3">
                     <div>
                         <h5 class="fw-bold mb-1">أهلاً بك مجدداً، {{ Auth::user()->name ?? 'الأدمن' }}! 👋</h5>
-                        <p class="mb-0 text-muted small">هذه هي نظرة عامة على أداء نظام الحجوزات والاشتراكات اليوم.</p>
+                        <p class="mb-0 text-muted small">هذه هي لوحة التحكم الخاصة بنظام الحجوزات والاشتراكات.</p>
                     </div>
                     <a href="{{ route('bookings.index') }}" class="btn btn-primary btn-sm rounded-2">إدارة الحجوزات</a>
                 </div>
@@ -140,7 +146,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="text-muted small">الحجوزات النشطة</span>
-                                    <h3 class="fw-bold mb-0 mt-1">45</h3>
+                                    <h3 class="fw-bold mb-0 mt-1">{{ isset($bookings) ? count($bookings) : 0 }}</h3>
                                 </div>
                                 <div class="stat-icon bg-success-subtle text-success">
                                     <i class="fa-solid fa-calendar-check"></i>
@@ -178,10 +184,10 @@
                     </div>
                 </div>
 
-                <!-- جدول العمليات الحديثة -->
+                <!-- جدول الحجوزات والإجراءات -->
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                        <h6 class="fw-bold mb-0"><i class="fa-solid fa-list text-primary me-2"></i>آخر الحجوزات والأنشطة</h6>
+                        <h6 class="fw-bold mb-0"><i class="fa-solid fa-list text-primary me-2"></i>إدارة الحجوزات والعمليات</h6>
                         <a href="{{ route('bookings.index') }}" class="btn btn-light btn-sm fw-semibold">عرض الكل</a>
                     </div>
                     <div class="table-responsive">
@@ -191,9 +197,9 @@
                                     <th>#</th>
                                     <th>اسم العميل</th>
                                     <th>خدمة الحجز</th>
-                                    <th>حالة الاشتراك</th>
+                                    <th>الحالة</th>
                                     <th>التاريخ</th>
-                                    <th>الإجراءات</th>
+                                    <th class="text-center">الإجراءات المحمية</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -202,17 +208,46 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td class="fw-bold">{{ $booking->user->name ?? 'مستخدم' }}</td>
                                         <td>{{ $booking->service_name ?? 'حجز عام' }}</td>
-                                        <td><span class="badge bg-success">نشط (مُفعل)</span></td>
+                                        <td><span class="badge bg-success">نشط</span></td>
                                         <td>{{ $booking->created_at->format('Y-m-d') }}</td>
-                                        <td>
-                                            <a href="{{ route('bookings.index') }}" class="btn btn-sm btn-outline-primary" title="عرض">
-                                                <i class="fa-solid fa-eye"></i>
-                                            </a>
+                                        <td class="text-center">
+                                            <div class="btn-group gap-1" role="group">
+                                                <!-- زر العرض -->
+                                                <a href="{{ route('bookings.index') }}" class="btn btn-sm btn-outline-primary" title="عرض التفاصيل">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+
+                                                <!-- تظهر فقط للأدمن: أزرار التعديل والحذف برقم السر -->
+                                                @if(auth()->check() && auth()->user()->role === 'admin')
+                                                    
+                                                    <!-- زر التعديل بمطالبة كلمة سر -->
+                                                    <a href="{{ route('bookings.edit', $booking->id) }}" 
+                                                       class="btn btn-sm btn-outline-warning" 
+                                                       title="تعديل"
+                                                       onclick="return promptAdminPasswordForEdit(event);">
+                                                        <i class="fa-solid fa-pen-to-square"></i> تعديل
+                                                    </a>
+
+                                                    <!-- زر الحذف المباشر التفاعلي -->
+                                                    <form action="{{ route('bookings.destroy', $booking->id) }}" 
+                                                          method="POST" 
+                                                          class="d-inline" 
+                                                          onsubmit="return confirmAdminPasswordForDelete(event, this);">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <input type="hidden" name="admin_password" class="admin-password-input">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف الحجز">
+                                                            <i class="fa-solid fa-trash-can"></i> حذف
+                                                        </button>
+                                                    </form>
+
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">لا توجد حجوزات حديثة حتى الآن</td>
+                                        <td colspan="6" class="text-center text-muted py-4">لا توجد حجوزات مسجلة حالياً</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -225,6 +260,38 @@
 
     </div>
 </div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- سكريبت طلب كلمة سر المدير للتعديل والحذف -->
+<script>
+    // 1. عند الضغط على زر الحذف
+    function confirmAdminPasswordForDelete(event, form) {
+        event.preventDefault();
+
+        let password = prompt("⚠️ إجراء محمي! يرجى إدخال كلمة مرور المدير لتأكيد عملية الحذف:");
+
+        if (password !== null && password.trim() !== "") {
+            form.querySelector('.admin-password-input').value = password;
+            form.submit();
+        } else if (password !== null) {
+            alert("❌ يجب إدخال كلمة المرور لتنفيذ الحذف!");
+        }
+    }
+
+    // 2. عند الضغط على زر التعديل
+    function promptAdminPasswordForEdit(event) {
+        let password = prompt("🔒 إجراء محمي! أدخل كلمة مرور المدير للانتقال إلى التعديل:");
+        
+        if (password === null || password.trim() === "") {
+            event.preventDefault();
+            alert("❌ لا يمكن الانتقال للتعديل بدون كلمة مرور المدير!");
+            return false;
+        }
+        return true;
+    }
+</script>
 
 </body>
 </html>
