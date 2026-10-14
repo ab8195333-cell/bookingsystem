@@ -27,17 +27,26 @@ RUN echo '<VirtualHost *:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# نسخ ملفات المشروع إلى داخل الحاوية
+# تعيين مجلد العمل
+WORKDIR /var/www/html
+
+# تثبيت Composer مسبقاً
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# نسخ ملفات التبعيات أولاً للاستفادة من الـ caching
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+# نسخ باقي ملفات المشروع
 COPY . /var/www/html
 
-# تعيين صلاحيات المجلدات لتجنب مشاكل التخزين المؤقت والكاش
+# تشغيل الـ composer scripts المتبقية
+RUN composer run-script post-autoload-dump || true
+
+# تعيين صلاحيات المجلدات
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# تثبيت Composer لتنزيل الحزم
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --optimize-autoloader
-
-# إنشاء سكريبت تشغيل يقوم بإنشاء قاعدة SQLite، تشغيل الـ Migrations، ثم تشغيل Apache
+# إنشاء سكريبت تشغيل صحيح
 RUN echo '#!/bin/sh\n\
 mkdir -p /var/www/html/database\n\
 if [ ! -f /var/www/html/database/database.sqlite ]; then\n\
@@ -45,7 +54,7 @@ if [ ! -f /var/www/html/database/database.sqlite ]; then\n\
 fi\n\
 chown -R www-data:www-data /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache\n\
 php artisan migrate --force\n\
-apache2-foreground' > /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+exec apache2-foreground' > /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 CMD ["/usr/local/bin/entrypoint.sh"]
 
