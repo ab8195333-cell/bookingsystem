@@ -1,61 +1,54 @@
-FROM php:8.3-apache
+# استخدام صورة PHP رسمية مع الحزم المطلوبة
+FROM php:8.3-fpm
 
-# تثبيت الحزم المطلوبة لنظام لاراول
+# تثبيت متطلبات النظام الأساسية
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    unzip \
     git \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql gd zip
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev
 
-# تفعيل Apache Rewrite Module لتوجيه الروابط بشكل صحيح
-RUN a2enmod rewrite
+# تنظيف التخزين المؤقت لـ apt
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# إنشاء ملف إعدادات مخصص لـ Apache لتوجيه المسار إلى مجلد public
-RUN echo '<VirtualHost *:80>\n\
-    ServerAdmin webmaster@localhost\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+# تثبيت ملحقات PHP المطلوبة لاراول
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# تعيين مجلد العمل
-WORKDIR /var/www/html
-
-# تثبيت Composer مسبقاً
+# تثبيت Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# نسخ ملفات التبعيات أولاً للاستفادة من الـ caching
+# تحديد مجلد العمل
+WORKDIR /var/www/html
+
+# نسخ ملفات Composer أولاً لتحسين التخزين المؤقت
 COPY composer.json composer.lock ./
+
+# تثبيت الحزم بدون حزم التطوير (Production)
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # نسخ باقي ملفات المشروع
-COPY . /var/www/html
+COPY . .
 
-# تشغيل الـ composer scripts المتبقية
+# إنشاء مجلدات التخزين و الـ Cache وضبط الصلاحيات تلقائياً لمنع أي أخطاء
+RUN mkdir -p /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# تشغيل سكربتات ما بعد التحميل
 RUN composer run-script post-autoload-dump || true
 
-# تعيين صلاحيات المجلدات
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# إعطاء صلاحيات الكتابة الكاملة للمجلدات الحيوية
+RUN chmod -R 777 storage bootstrap/cache
 
-# إنشاء سكريبت تشغيل صحيح
-RUN echo '#!/bin/sh\n\
-mkdir -p /var/www/html/database\n\
-if [ ! -f /var/www/html/database/database.sqlite ]; then\n\
-    touch /var/www/html/database/database.sqlite\n\
-fi\n\
-chown -R www-data:www-data /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache\n\
-php artisan migrate --force\n\
-exec apache2-foreground' > /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+# منفذ التشغيل
+EXPOSE 10000
 
-CMD ["/usr/local/bin/entrypoint.sh"]
-
-EXPOSE 80
+# أمر التشغيل النهائي للمشروع
+CMD php artisan config:cache && php artisan route:cache && php artisan serve --host=0.0.0.0 --port=10000
