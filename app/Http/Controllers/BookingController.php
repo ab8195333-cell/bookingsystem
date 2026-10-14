@@ -65,12 +65,21 @@ class BookingController extends Controller
         return redirect()->back()->with('success', 'تمت الإضافة بنجاح');
     }
 
-    public function downloadFullReport()
-    {
-        $bookings = Booking::where('user_id', Auth::id())->get();
-        $pdf = Pdf::loadView('bookings.pdf', ['bookings' => $bookings, 'bookingsCount' => $bookings->count(), 'totalAmount' => $bookings->sum('amount')]);
-        return $pdf->download('report.pdf');
-    }
+    
+
+public function downloadFullReport()
+{
+    $user = Auth::user();
+    $bookings = Booking::where('user_id', $user->id)->get();
+    
+    $pdf = Pdf::loadView('bookings.pdf', [
+        'bookings' => $bookings, 
+        'bookingsCount' => $bookings->count(), 
+        'totalAmount' => $bookings->sum('amount')
+    ]);
+
+    return $pdf->download('bookings-report.pdf');
+}
 
    
 
