@@ -9,6 +9,7 @@ class AdminController extends Controller
 {
     public function index()
     {
+        // يمكنك إرجاع عرض (View) لوحة التحكم هنا
         return view('admin.dashboard');
     }
 }

@@ -18,7 +18,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', [BookingController::class, 'index'])->name('home');
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/subscribe', [BookingController::class, 'subscribe'])->name('subscription.index');
-    Route::post('/start-trial', [BookingController::class, 'startTrial'])->name('subscription.start_trial');
+    Route::post('/start-trial', [BookingController::class, 'startTrial'])->name('start.trial');
 
     // العمليات الأخرى
     Route::post('/bookings/store', [BookingController::class, 'store'])->name('bookings.store');

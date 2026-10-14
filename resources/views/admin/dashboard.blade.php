@@ -73,13 +73,13 @@
             </div>
             <ul class="nav flex-column mt-3">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#"><i class="fa-solid fa-chart-pie"></i> الرئيسية</a>
+                    <a class="nav-link active" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-chart-pie"></i> الرئيسية</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="fa-solid fa-users"></i> المستخدمين</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fa-solid fa-bookmark"></i> الحجوزات</a>
+                    <a class="nav-link" href="{{ route('bookings.index') }}"><i class="fa-solid fa-bookmark"></i> الحجوزات</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="fa-solid fa-credit-card"></i> الاشتراكات</a>
@@ -182,7 +182,7 @@
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                         <h6 class="fw-bold mb-0"><i class="fa-solid fa-list text-primary me-2"></i>آخر الحجوزات والأنشطة</h6>
-                        <button class="btn btn-light btn-sm fw-semibold">عرض الكل</button>
+                        <a href="{{ route('bookings.index') }}" class="btn btn-light btn-sm fw-semibold">عرض الكل</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -197,22 +197,24 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td class="fw-bold">عبدالله ماهر</td>
-                                    <td>حجز باقة Pro SaaS</td>
-                                    <td><span class="badge bg-success">نشط (مُفعل)</span></td>
-                                    <td>2026-10-14</td>
-                                    <td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></button></td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td class="fw-bold">محمد علي</td>
-                                    <td>فترة تجريبية (Trial)</td>
-                                    <td><span class="badge bg-warning text-dark">تجربة 5 أيام</span></td>
-                                    <td>2026-10-13</td>
-                                    <td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></button></td>
-                                </tr>
+                                @forelse($bookings ?? [] as $booking)
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td class="fw-bold">{{ $booking->user->name ?? 'مستخدم' }}</td>
+                                        <td>{{ $booking->service_name ?? 'حجز عام' }}</td>
+                                        <td><span class="badge bg-success">نشط (مُفعل)</span></td>
+                                        <td>{{ $booking->created_at->format('Y-m-d') }}</td>
+                                        <td>
+                                            <a href="{{ route('bookings.index') }}" class="btn btn-sm btn-outline-primary" title="عرض">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">لا توجد حجوزات حديثة حتى الآن</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
