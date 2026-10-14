@@ -4,37 +4,47 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
-     * تشغيل التهجير لبناء الجدول
+     * تشغيل التهجير لإنشاء جدول الحجوزات.
      */
     public function up(): void
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             
-            // اسم العميل
-            $table->string('customer_name'); 
+            // ربط الحجز بالمستخدم (صاحب الحساب/المستأجر في نظام SaaS)
+            // onDelete('cascade') تضمن حذف حجوزات المستخدم إذا حُذف حسابه
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
             
-            // المبلغ مع جعل 50.00 قيمة افتراضية كما طلبت
-            $table->decimal('amount', 8, 2)->default(50.00); 
+            // بيانات العميل
+            $table->string('customer_name');
+            $table->string('customer_email')->nullable();
+            $table->string('customer_phone')->nullable(); // إضافة رقم الهاتف مهمة جداً للتواصل
             
-            // حالة الحجز الافتراضية
-            $table->string('status')->default('pending');
+            // تفاصيل الحجز
+            $table->string('service_name'); // نوع الخدمة المحجوزة
+            $table->dateTime('appointment_date'); // تاريخ ووقت الحجز
             
-            // ربط الحجز بالمستخدم
-            $table->unsignedBigInteger('user_id');
+            // حالة الحجز
+            $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
             
+            // حقل إضافي للملاحظات
+            $table->text('notes')->nullable();
+            
+            // طوابع زمنية (created_at & updated_at)
             $table->timestamps();
+            
+            // Soft Deletes (اختياري: للسماح باستعادة الحجوزات المحذوفة)
+            $table->softDeletes(); 
 
-            // إضافة العلاقة مع جدول المستخدمين
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // تحسين الأداء: إضافة كشاف (Index) للبحث السريع عن الحجوزات حسب التاريخ
+            $table->index('appointment_date');
         });
     }
 
     /**
-     * تراجع عن التهجير (حذف الجدول)
+     * تراجع عن التهجير وحذف الجدول.
      */
     public function down(): void
     {

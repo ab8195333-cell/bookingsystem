@@ -4,32 +4,40 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Booking extends Model
 {
     use HasFactory;
 
-    // اسم الجدول في قاعدة البيانات
-    protected $table = 'bookings';
-
-    // الحقول المسموح بتعبئتها (لحماية النظام من Mass Assignment)
+    /**
+     * الحقول القابلة للتعبئة (Mass Assignable)
+     * 
+     * تم إضافة 'appointment_date' و 'service_name' لحل مشكلة:
+     * "Field doesn't have a default value"
+     */
     protected $fillable = [
-        'customer_name',
-        'phone_number',
-        'customer_email',
-        'status',
-        'amount',
-        'store_id',
-        'user_id',
+        'user_id',          // معرف المستخدم صاحب الحجز
+        'customer_name',    // اسم العميل
+        'service_name',     // اسم الخدمة (المقابل لـ service في الفورم)
+        'amount',           // المبلغ
+        'booking_date',     // تاريخ الحجز
+        'appointment_date', // تاريخ الموعد (الحقل الذي كان يسبب الخطأ الأخير)
     ];
 
     /**
-     * علاقة الحجز بالمستخدم (صاحب الحساب/المستأجر)
-     * كل حجز ينتمي لمستخدم واحد فقط
+     * علاقة الحجز بالمستخدم (User)
+     * كل حجز ينتمي لمستخدم واحد (صاحب الحساب)
      */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * (إختياري) تنسيق التاريخ عند العرض
+     */
+    protected $casts = [
+        'booking_date' => 'date',
+        'appointment_date' => 'date',
+    ];
 }

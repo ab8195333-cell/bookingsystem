@@ -6,30 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            /**
-             * إضافة عمود الصلاحيات:
-             * admin: مدير النظام
-             * registrar: المسجل
-             * user: زائر/مستخدم مسجل عادي
-             */
-            $table->string('role')->default('user')->after('email');
+            // إضافة عمود الصلاحية إذا لم يكن موجوداً
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->string('role')->default('user')->after('email');
+            }
+
+            // إضافة أعمدة الاشتراك (5 أيام و 5 دولار)
+            if (!Schema::hasColumn('users', 'trial_ends_at')) {
+                $table->timestamp('trial_ends_at')->nullable()->after('password');
+            }
+
+            if (!Schema::hasColumn('users', 'is_paid')) {
+                $table->boolean('is_paid')->default(false)->after('trial_ends_at');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // حذف العمود عند عمل rollback
-            $table->dropColumn('role');
+            $table->dropColumn(['role', 'trial_ends_at', 'is_paid']);
         });
     }
 };

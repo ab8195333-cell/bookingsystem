@@ -3,33 +3,34 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Admin\AdminController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-// الصفحة الرئيسية (يمكنك تغييرها لتكون صفحة هبوط لاحقاً)
+// تحويل الصفحة الرئيسية تلقائياً إلى الحجوزات
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('bookings.index');
 });
 
-// روابط نظام المصادقة (تسجيل الدخول، الاشتراك، استعادة كلمة المرور)
+// تعريف مسارات تسجيل الدخول والخروج تلقائياً
 Auth::routes();
 
-// روابط النظام المحمية - لا يمكن الدخول إليها إلا بعد تسجيل الدخول
+// مسارات النظام المحمية للمستخدمين العاديين
 Route::middleware(['auth'])->group(function () {
-    
-    // 1. رابط تصدير البيانات إلى Excel (يجب أن يكون قبل الـ Resource ليعمل بشكل صحيح)
-    Route::get('/bookings/export', [BookingController::class, 'exportExcel'])->name('bookings.export');
+    Route::get('/home', [BookingController::class, 'index'])->name('home');
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/subscribe', [BookingController::class, 'subscribe'])->name('subscription.index');
+    Route::post('/start-trial', [BookingController::class, 'startTrial'])->name('subscription.start_trial');
 
-    // 2. رابط تحديث حالة الحجز (مقبول / ملغي)
-    Route::patch('/bookings/{id}/status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+    // العمليات الأخرى
+    Route::post('/bookings/store', [BookingController::class, 'store'])->name('bookings.store');
+    Route::delete('/bookings/{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+    Route::get('/bookings/report', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf_all');
 
-    // 3. روابط العمليات الأساسية (عرض، إضافة، تعديل، حذف)
-    Route::resource('bookings', BookingController::class);
+    // مسار الانتقال لصفحة أو عملية الدفع
+    Route::get('/subscription/checkout', [BookingController::class, 'checkout'])->name('subscription.checkout');
+    Route::post('/subscription/stripe-checkout', [BookingController::class, 'stripeCheckout'])->name('subscription.stripe');
+});
 
-    // يمكنك إضافة رابط الصفحة الشخصية للمستأجر هنا مستقبلاً
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// مسارات لوحة تحكم الأدمن (محمية بـ auth و admin معاً بشكل منفصل وصحيح)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 });

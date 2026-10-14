@@ -11,29 +11,45 @@ use Illuminate\Support\Facades\Route;
 class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * المسار الذي يتم توجيه المستخدمين إليه بعد تسجيل الدخول.
-     * تم تعديله من /dashboard إلى /bookings
+     * المسار إلى صفحة "الرئيسية" لمشروعك.
      *
-     * @var string
+     * يستخدم هذا المسار من قبل نظام المصادقة (Auth) في لارافل لتوجيه المستخدمين
+     * بعد تسجيل الدخول أو التسجيل الناجح.
+     *
+     * تم تعديله من '/home' إلى '/bookings' لحل مشكلة 404.
      */
     public const HOME = '/bookings';
 
     /**
-     * تحديد الروابط وبناء معدلات التحديد (Rate Limiters).
+     * تحديد روابط المسارات للمشروع.
+     *
+     * @return void
      */
-    public function boot(): void
+    public function boot()
+    {
+        $this->configureRateLimiting();
+
+        $this->routes(function () {
+            // مسارات واجهة البرمجة (API)
+            Route::prefix('api')
+                ->middleware('api')
+                ->group(base_path('routes/api.php'));
+
+            // مسارات الويب (Web)
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+        });
+    }
+
+    /**
+     * تكوين حدود الطلبات (Rate Limiters) للمشروع.
+     *
+     * @return void
+     */
+    protected function configureRateLimiting()
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
-        });
-
-        $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
-
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
         });
     }
 }

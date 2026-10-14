@@ -11,30 +11,28 @@ class LoginController extends Controller
     |--------------------------------------------------------------------------
     | Login Controller
     |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
+    | هذا المتحكم مسؤول عن التحقق من بيانات المستخدم وتوجيهه بعد الدخول.
     */
 
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
+     * المسار الذي يتم توجيه المستخدم إليه بعد تسجيل الدخول.
+     * تم تعديله من /home إلى /bookings لحل خطأ 404 الظاهر في الصورة c61485b2.
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/bookings';
 
     /**
-     * Create a new controller instance.
-     *
-     * @return void
+     * إنشاء نسخة جديدة من المتحكم.
      */
     public function __construct()
     {
+        // يمنع المستخدم المسجل دخولاً بالفعل من رؤية صفحة الدخول مرة أخرى
         $this->middleware('guest')->except('logout');
+        
+        // يسمح للمستخدم بتسجيل الخروج في أي وقت
         $this->middleware('auth')->only('logout');
     }
 }

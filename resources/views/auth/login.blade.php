@@ -1,115 +1,53 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-    /* حاوية تجعل المحتوى في المنتصف تماماً */
-    .login-wrapper {
-        display: flex;
-        justify-content: center; /* التوسط العرضي */
-        align-items: center;     /* التوسط الطولي */
-        min-height: 80vh;        /* يأخذ معظم ارتفاع الشاشة */
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary py-4 text-center border-0">
+                    <h4 class="text-white fw-bold mb-0">مرحباً بك في BOOKINGSAAS</h4>
+                </div>
+                <div class="card-body p-5 bg-white">
+                    <h5 class="text-center fw-bold mb-4 text-secondary">تسجيل الدخول</h5>
+                    
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">البريد الإلكتروني</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-muted"></i></span>
+                                <input type="email" name="email" class="form-control bg-light border-0 @error('email') is-invalid @enderror" placeholder="name@example.com" value="{{ old('email') }}" required autofocus>
+                            </div>
+                            @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
 
-    .login-card { 
-        background: white; 
-        padding: 40px; 
-        border-radius: 20px; 
-        width: 100%; 
-        max-width: 420px; 
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-        border: 1px solid #f0f0f0;
-    }
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">كلمة المرور</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-lock text-muted"></i></span>
+                                <input type="password" name="password" class="form-control bg-light border-0 @error('password') is-invalid @enderror" placeholder="••••••••" required>
+                            </div>
+                            @error('password') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
 
-    .login-title {
-        color: #333;
-        font-weight: 700;
-        margin-bottom: 30px;
-        font-size: 24px;
-    }
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-3 shadow-sm">
+                                دخول <i class="fas fa-sign-in-alt ms-2"></i>
+                            </button>
+                        </div>
 
-    .login-card input { 
-        width: 100%; 
-        padding: 14px; 
-        margin: 12px 0; 
-        border: 1px solid #e0e0e0; 
-        border-radius: 10px; 
-        font-size: 16px; 
-        box-sizing: border-box;
-        text-align: right;
-        background-color: #fafafa;
-        transition: 0.3s;
-    }
-
-    .login-card input:focus {
-        border-color: #007bff;
-        background-color: #fff;
-        outline: none;
-        box-shadow: 0 0 0 4px rgba(0,123,255,0.1);
-    }
-
-    .login-card button { 
-        background: #007bff; 
-        color: white; 
-        border: none; 
-        padding: 14px; 
-        cursor: pointer; 
-        border-radius: 10px; 
-        width: 100%; 
-        font-weight: bold; 
-        font-size: 18px;
-        transition: 0.3s;
-        margin-top: 20px;
-    }
-
-    .login-card button:hover {
-        background: #0056b3;
-        transform: translateY(-2px);
-    }
-
-    .remember-me {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
-        margin-top: 10px;
-        color: #666;
-        font-size: 14px;
-    }
-</style>
-
-<div class="login-wrapper" dir="rtl">
-    <div class="login-card text-center">
-        <h2 class="login-title">تسجيل الدخول</h2>
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-            
-            {{-- البريد الإلكتروني --}}
-            <input type="email" name="email" placeholder="البريد الإلكتروني" value="{{ old('email') }}" required autofocus>
-            @error('email')
-                <span class="text-danger small d-block text-end" style="margin-top:-8px">{{ $message }}</span>
-            @enderror
-            
-            {{-- كلمة المرور --}}
-            <input type="password" name="password" placeholder="كلمة المرور" required>
-            @error('password')
-                <span class="text-danger small d-block text-end" style="margin-top:-8px">{{ $message }}</span>
-            @enderror
-
-            <div class="remember-me">
-                <label for="remember">تذكرني</label>
-                <input type="checkbox" name="remember" id="remember" style="width: auto; margin: 0;">
+                        <div class="text-center pt-3 border-top">
+                            <p class="text-muted mb-1">ليس لديك حساب حتى الآن؟</p>
+                            <a href="{{ route('register') }}" class="btn btn-outline-secondary w-100 fw-bold rounded-3 mt-2">
+                                <i class="fas fa-user-plus me-1"></i> إنشاء حساب جديد (Register)
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <button type="submit">دخول</button>
-        </form>
-
-        @if (Route::has('password.request'))
-            <a href="{{ route('password.request') }}" style="display:block; margin-top:20px; color:#007bff; text-decoration:none; font-size: 14px;">
-                نسيت كلمة المرور؟
-            </a>
-        @endif
+        </div>
     </div>
 </div>
 @endsection
