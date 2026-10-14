@@ -110,7 +110,7 @@
                             <td>{{ number_format($booking->amount, 2) }} ريال</td>
                             <td>{{ $booking->booking_date }}</td>
                             <td class="px-4 py-3">
-                                <!-- أزرار التحكم تظهر فقط للأدمن أو بصلاحية الحماية -->
+                                <!-- أزرار التحكم تظهر فقط للأدمن -->
                                 @if(auth()->check() && auth()->user()->role === 'admin')
                                     <div class="d-flex justify-content-center gap-2">
                                         <!-- 1. زر التعديل المحمي بكلمة السر -->
