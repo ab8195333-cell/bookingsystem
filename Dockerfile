@@ -22,8 +22,10 @@ RUN sed -ri -s 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # نسخ ملفات المشروع إلى داخل الحاوية
 COPY . /var/www/html
 
-# تعيين صلاحيات المجلدات لتجنب مشاكل التخزين المؤقت والكاش
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# إنشاء ملف SQLite تلقائياً وتعيين الصلاحيات للمجلدات
+RUN mkdir -p /var/www/html/database && \
+    touch /var/www/html/database/database.sqlite && \
+    chown -R www-data:www-data /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
 
 # تثبيت Composer لتنزيل الحزم
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
