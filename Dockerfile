@@ -50,5 +50,8 @@ RUN chmod -R 777 storage bootstrap/cache
 # منفذ التشغيل
 EXPOSE 10000
 
-# أمر التشغيل النهائي الآمن
-CMD php artisan config:clear && php artisan route:clear && php artisan serve --host=0.0.0.0 --port=10000
+# إنشاء ملف SQLite فارغ تلقائياً إذا لم يكن موجوداً قبل التشغيل
+CMD touch /var/www/html/database/database.sqlite && \
+    php artisan config:clear && \
+    php artisan migrate --force && \
+    php artisan serve --host=0.0.0.0 --port=10000
