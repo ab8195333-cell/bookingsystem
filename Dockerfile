@@ -16,8 +16,6 @@ RUN a2enmod rewrite
 
 # تغيير مجلد العرض الافتراضي لـ Apache إلى مجلد public الخاص بلاراول
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-DocumentRoot /var/www/html/public
-
 RUN sed -ri -s 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -s 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
