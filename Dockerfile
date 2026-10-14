@@ -22,7 +22,7 @@ RUN sed -ri -s 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # نسخ ملفات المشروع إلى داخل الحاوية
 COPY . /var/www/html
 
-# إنشاء ملف SQLite تلقائياً وتعيين الصلاحيات للمجلدات
+# إنشاء مجلد وملف SQLite وتعيين الصلاحيات وتشغيل الـ Migrations
 RUN mkdir -p /var/www/html/database && \
     touch /var/www/html/database/database.sqlite && \
     chown -R www-data:www-data /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
@@ -30,5 +30,8 @@ RUN mkdir -p /var/www/html/database && \
 # تثبيت Composer لتنزيل الحزم
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader
+
+# تشغيل ترحيل قاعدة البيانات (Migrations) لإنشاء الجداول المطلوبة
+RUN php artisan migrate --force
 
 EXPOSE 80
