@@ -79,33 +79,34 @@ public function checkout()
         return view('subscriptions.payment-options');
     }
 
-    public function stripeCheckout()
-    {
-        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+   public function stripeCheckout()
+{
+    // استخدام config بدلاً من env لتجنب مشاكل الـ Caching
+    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
-        try {
-            $session = \Stripe\Checkout\Session::create([
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => 'usd',
-                        'product_data' => [
-                            'name' => 'اشتراك الباقة الشاملة - نظام الحجوزات',
-                        ],
-                        'unit_amount' => 1500, // 15.00 دولار
+    try {
+        $session = \Stripe\Checkout\Session::create([
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => 'اشتراك الباقة الشاملة - نظام الحجوزات',
                     ],
-                    'quantity' => 1,
-                ]],
-                'mode' => 'payment',
-                'success_url' => route('bookings.index') . '?success=true',
-                'cancel_url' => route('subscription.checkout'),
-            ]);
+                    'unit_amount' => 1500, // 15.00 دولار
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => route('bookings.index') . '?success=true',
+            'cancel_url' => route('subscription.checkout'),
+        ]);
 
-            return redirect($session->url);
-            
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'خطأ في اتصال بوابة الدفع: ' . $e->getMessage()]);
-        }
+        return redirect($session->url);
+        
+    } catch (\Exception $e) {
+        return back()->withErrors(['error' => 'خطأ في اتصال بوابة الدفع: ' . $e->getMessage()]);
     }
+}
 
 
 
@@ -137,9 +138,13 @@ public function destroy(Request $request, $id)
 // 1. عرض صفحة التعديل (أو فحص كلمة السر أولاً)
 public function edit(Request $request, $id)
 {
-    // التأكد أن المستخدم أدمن
     if (!auth()->check() || auth()->user()->role !== 'admin') {
         abort(403, 'غير مصرح لك.');
+    }
+
+    // التحقق من كلمة المرور المرسلة عبر الرابط من نافذة الـ prompt
+    if (!$request->filled('admin_password') || !Hash::check($request->admin_password, Auth::user()->password)) {
+        return redirect()->route('bookings.index')->with('error', '❌ كلمة المرور غير صحيحة، فشل فتح صفحة التعديل!');
     }
 
     $booking = Booking::findOrFail($id);
