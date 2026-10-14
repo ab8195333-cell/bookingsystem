@@ -70,12 +70,18 @@ class BookingController extends Controller
 public function downloadFullReport()
 {
     $user = Auth::user();
+    
+    // جلب حجوزات المستخدم
     $bookings = Booking::where('user_id', $user->id)->get();
     
+    $bookingsCount = $bookings->count();
+    $totalAmount = $bookings->sum('amount');
+
+    // توليد ملف الـ PDF حتى لو كان عدد الحجوزات صفراً لكي لا يحدث خطأ
     $pdf = Pdf::loadView('bookings.pdf', [
         'bookings' => $bookings, 
-        'bookingsCount' => $bookings->count(), 
-        'totalAmount' => $bookings->sum('amount')
+        'bookingsCount' => $bookingsCount, 
+        'totalAmount' => $totalAmount
     ]);
 
     return $pdf->download('bookings-report.pdf');
