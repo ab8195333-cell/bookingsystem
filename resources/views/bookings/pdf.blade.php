@@ -33,15 +33,20 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($bookings as $booking)
+            @forelse($bookings as $booking)
             <tr>
                 <td>{{ $booking->customer_name }}</td>
-                <!-- تم التحديث هنا إلى service_name -->
                 <td>{{ $booking->service_name }}</td>
                 <td>{{ number_format($booking->amount, 2) }} ريال</td>
                 <td>{{ $booking->booking_date }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px; color: #777;">
+                    لا توجد حجوزات مسجلة حالياً
+                </td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 </body>
