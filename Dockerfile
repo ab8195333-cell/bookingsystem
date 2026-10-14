@@ -14,10 +14,18 @@ RUN apt-get update && apt-get install -y \
 # تفعيل Apache Rewrite Module لتوجيه الروابط بشكل صحيح
 RUN a2enmod rewrite
 
-# تغيير مجلد العرض الافتراضي لـ Apache إلى مجلد public الخاص بلاراول
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -s 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -s 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
+# إنشاء ملف إعدادات مخصص لـ Apache لتوجيه المسار إلى مجلد public
+RUN echo '<VirtualHost *:80>\n\
+    ServerAdmin webmaster@localhost\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # نسخ ملفات المشروع إلى داخل الحاوية
 COPY . /var/www/html
