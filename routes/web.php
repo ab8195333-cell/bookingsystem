@@ -15,7 +15,11 @@ Auth::routes();
 
 // مسارات النظام المحمية للمستخدمين
 Route::middleware(['auth'])->group(function () {
-    Route::get('/home', [BookingController::class, 'index'])->name('home');
+    // إعادة توجيه مسار /home فوراً إلى جدول الحجوزات لمنع التحويل الخاطئ إلى PDF
+    Route::get('/home', function () {
+        return redirect()->route('bookings.index');
+    })->name('home');
+
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/subscribe', [BookingController::class, 'subscribe'])->name('subscription.index');
     Route::post('/start-trial', [BookingController::class, 'startTrial'])->name('start.trial');
@@ -23,16 +27,17 @@ Route::middleware(['auth'])->group(function () {
     // العمليات على الحجوزات (الإضافة، التعديل، والحذف)
     Route::post('/bookings/store', [BookingController::class, 'store'])->name('bookings.store');
     
-    
-    // مسارات التعديل المطلوبة بالاسم الصحيح bookings.edit و bookings.update
+    // مسارات التعديل
     Route::get('/bookings/{id}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
     Route::put('/bookings/{id}', [BookingController::class, 'update'])->name('bookings.update');
-     Route::get('/bookings/report-print', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf_all');
     
+    // مسار التقرير
+    Route::get('/bookings/report-print', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf_all');
+    
+    // مسار الحذف
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
-   
 
-    // مسار الدفع والاشتراكات
+    // مسارات الدفع والاشتراكات
     Route::get('/subscription/checkout', [BookingController::class, 'checkout'])->name('subscription.checkout');
     Route::post('/subscription/stripe-checkout', [BookingController::class, 'stripeCheckout'])->name('subscription.stripe');
 });
