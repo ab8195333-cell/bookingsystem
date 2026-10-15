@@ -27,7 +27,7 @@ Route::middleware(['auth'])->group(function () {
     // مسارات التعديل المطلوبة بالاسم الصحيح bookings.edit و bookings.update
     Route::get('/bookings/{id}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
     Route::put('/bookings/{id}', [BookingController::class, 'update'])->name('bookings.update');
-     Route::get('/bookings/report', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf');
+     Route::get('/bookings/report-print', [BookingController::class, 'downloadFullReport'])->name('bookings.pdf_all');
     
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
    
