@@ -120,23 +120,51 @@ public function checkout()
 
 
 
+// 1. حذف حجز
 public function destroy(Request $request, $id)
 {
-    // 1. التحقق من صلاحية الأدمن
-    if (!auth()->check() || auth()->user()->role !== 'admin') {
-        abort(403, 'غير مصرح لك بالوصول.');
-    }
-
-    // 2. التحقق هل أدخل كلمة المرور وهل هي صحيحة بحسب حساب الأدمن المسجل
+    // التحقق هل أدخل كلمة المرور وهل هي صحيحة بحسب حساب المستخدم المسجل حالياً
     if (!$request->filled('admin_password') || !Hash::check($request->admin_password, Auth::user()->password)) {
         return redirect()->back()->with('error', '❌ كلمة المرور غير صحيحة! لم يتم الحذف.');
     }
 
-    // 3. تنفيذ الحذف عند مطابقة كلمة المرور
+    // تنفيذ الحذف عند مطابقة كلمة المرور
     $booking = Booking::findOrFail($id);
     $booking->delete();
 
     return redirect()->back()->with('success', '✅ تم حذف الحجز بنجاح.');
+}
+
+// 2. عرض صفحة التعديل مع فحص كلمة السر
+public function edit(Request $request, $id)
+{
+    // التحقق من كلمة المرور المرسلة عبر الرابط أو النافذة
+    if (!$request->filled('admin_password') || !Hash::check($request->admin_password, Auth::user()->password)) {
+        return redirect()->route('bookings.index')->with('error', '❌ كلمة المرور غير صحيحة، فشل فتح صفحة التعديل!');
+    }
+
+    $booking = Booking::findOrFail($id);
+    return view('bookings.edit', compact('booking'));
+}
+
+// 3. معالجة وتحديث البيانات مع فحص كلمة المرور
+public function update(Request $request, $id)
+{
+    // التحقق من كلمة المرور
+    if (!$request->filled('admin_password') || !Hash::check($request->admin_password, Auth::user()->password)) {
+        return redirect()->back()->with('error', '❌ كلمة المرور غير صحيحة، فشل التعديل!');
+    }
+
+    // التحديث
+    $booking = Booking::findOrFail($id);
+    $booking->update([
+        'customer_name' => $request->customer_name,
+        'service_name'  => $request->service_name,
+        'amount'        => $request->amount,
+        'booking_date'  => $request->booking_date,
+    ]);
+
+    return redirect()->route('bookings.index')->with('success', '✅ تم تعديل الحجز بنجاح.');
 }
 
 
