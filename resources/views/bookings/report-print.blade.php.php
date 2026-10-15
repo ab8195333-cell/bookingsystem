@@ -2,52 +2,93 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>تقرير الحجوزات</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body { font-family: 'Tahoma', sans-serif; padding: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 25px;
+            color: #222;
+        }
+
+        h1, .summary {
+            text-align: center;
+        }
+
+        .summary {
+            margin: 20px 0;
+            line-height: 2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: right;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .actions {
+            margin: 20px 0;
+            text-align: center;
+        }
+
         @media print {
-            .no-print { display: none; }
+            .actions {
+                display: none;
+            }
         }
     </style>
 </head>
-<body onload="window.print()">
-    <div class="container">
-        <div class="text-center mb-4">
-            <h2>نظام الحجوزات الذكي - التقرير الشامل</h2>
-            <p class="text-muted">تاريخ التقرير: {{ now()->format('Y-m-d') }}</p>
-        </div>
+<body>
 
-        <div class="row mb-3">
-            <div class="col-6"><strong>عدد الحجوزات:</strong> {{ $bookingsCount }}</div>
-            <div class="col-6 text-end"><strong>إجمالي المبالغ:</strong> {{ number_format($totalAmount, 2) }} ريال</div>
-        </div>
+    <h1>تقرير الحجوزات</h1>
 
-        <table class="table table-bordered text-center">
-            <thead class="table-light">
+    <div class="summary">
+        <div>عدد الحجوزات: {{ $bookingsCount }}</div>
+        <div>إجمالي المبالغ: {{ number_format($totalAmount, 2) }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>رقم الحجز</th>
+                <th>اسم العميل</th>
+                <th>الخدمة</th>
+                <th>المبلغ</th>
+                <th>تاريخ الحجز</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @forelse ($bookings as $booking)
                 <tr>
-                    <th>العميل</th>
-                    <th>الخدمة</th>
-                    <th>المبلغ</th>
-                    <th>التاريخ</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($bookings as $booking)
-                <tr>
+                    <td>{{ $booking->id }}</td>
                     <td>{{ $booking->customer_name }}</td>
                     <td>{{ $booking->service_name }}</td>
-                    <td>{{ number_format($booking->amount, 2) }} ريال</td>
+                    <td>{{ number_format($booking->amount, 2) }}</td>
                     <td>{{ $booking->booking_date }}</td>
                 </tr>
-                @endforeach
-            </tbody>
-        </table>
+            @empty
+                <tr>
+                    <td colspan="5">لا توجد حجوزات لعرضها.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-        <div class="text-center mt-4 no-print">
-            <button onclick="window.print()" class="btn btn-primary px-4">طباعة / حفظ كـ PDF</button>
-            <a href="{{ route('bookings.index') }}" class="btn btn-secondary px-4">العودة للنظام</a>
-        </div>
+    <div class="actions">
+        <button onclick="window.print()">طباعة التقرير</button>
+        <button onclick="window.history.back()">رجوع</button>
     </div>
+
 </body>
 </html>
