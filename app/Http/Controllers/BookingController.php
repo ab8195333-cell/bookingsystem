@@ -72,7 +72,7 @@ class BookingController extends Controller
     $bookingsCount = $bookings->count();
     $totalAmount = $bookings->sum('amount');
 
-    return view('bookings.report-print', compact('bookings', 'bookingsCount', 'totalAmount'));
+    return view('bookings.report-print');
 }
 
 
