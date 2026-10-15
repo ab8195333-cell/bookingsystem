@@ -67,12 +67,10 @@ class BookingController extends Controller
 
   public function downloadFullReport()
 {
-    $user = auth()->user();
-    $bookings = \App\Models\Booking::where('user_id', $user->id)->get();
-    $bookingsCount = $bookings->count();
-    $totalAmount = $bookings->sum('amount');
-
-    return view('bookings.report-print', compact('bookings', 'bookingsCount', 'totalAmount'));
+    $bookings = Booking::all();
+    
+    // تأكد أن الاسم بين القوسين يطابق اسم الملف تماماً (بدون كلمة .blade.php)
+    return view('bookings.report-print', compact('bookings'));
 }
 
 
