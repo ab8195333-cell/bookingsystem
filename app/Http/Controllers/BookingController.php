@@ -70,7 +70,7 @@ class BookingController extends Controller
     $bookings = Booking::all();
     
     // تأكد أن الاسم بين القوسين يطابق اسم الملف تماماً (بدون كلمة .blade.php)
-    return view('bookings.report-print', compact('bookings'));
+    return view('report-print', compact('bookings'));
 }
 
 
