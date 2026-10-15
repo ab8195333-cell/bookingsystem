@@ -18,9 +18,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+# تأكد من إنشاء المجلدات ومنح الصلاحيات اللازمة قبل تشغيل composer install
+RUN mkdir -p storage bootstrap/cache \
+    && chmod -R 777 storage bootstrap/cache
 
-RUN chmod -R 777 storage bootstrap/cache
+RUN composer install --no-dev --optimize-autoloader
 
 EXPOSE 10000
 CMD php artisan serve --host=0.0.0.0 --port=10000
