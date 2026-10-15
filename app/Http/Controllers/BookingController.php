@@ -65,10 +65,10 @@ class BookingController extends Controller
         return redirect()->back()->with('success', 'تمت الإضافة بنجاح');
     }
 
-   public function downloadFullReport()
+  public function downloadFullReport()
 {
-    $user = Auth::user();
-    $bookings = Booking::where('user_id', $user->id)->get();
+    $user = auth()->user();
+    $bookings = \App\Models\Booking::where('user_id', $user->id)->get();
     $bookingsCount = $bookings->count();
     $totalAmount = $bookings->sum('amount');
 
