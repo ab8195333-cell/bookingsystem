@@ -68,9 +68,9 @@ class BookingController extends Controller
 public function downloadFullReport()
 {
     $bookings = Booking::all();
-    
-    // إضافة bookings. قبل اسم الملف لتوجيهه للمجلد الصحيح
-    return view('bookings.report-print', compact('bookings'));
+    $bookingsCount = $bookings->count(); // حساب عدد الحجوزات لتفادي الخطأ في ملف الـ View
+
+    return view('bookings.report-print', compact('bookings', 'bookingsCount'));
 }
 
 
