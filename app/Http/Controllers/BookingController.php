@@ -65,12 +65,12 @@ class BookingController extends Controller
         return redirect()->back()->with('success', 'تمت الإضافة بنجاح');
     }
 
-  public function downloadFullReport()
+public function downloadFullReport()
 {
     $bookings = Booking::all();
     
-    // تأكد أن الاسم بين القوسين يطابق اسم الملف تماماً (بدون كلمة .blade.php)
-    return view('report-print', compact('bookings'));
+    // إضافة bookings. قبل اسم الملف لتوجيهه للمجلد الصحيح
+    return view('bookings.report-print', compact('bookings'));
 }
 
 
