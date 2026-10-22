@@ -10,13 +10,12 @@ export default function CreateBookingPage() {
     service: '',
     price: '',
     date: '',
-    status: 'confirmed',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -24,22 +23,12 @@ export default function CreateBookingPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
     const token = localStorage.getItem('token');
 
-    // تجهيز الحقول بكافة الاحتمالات لتوافق الباك إند
+    // إرسال الحقول المتوافقة بالضبط مع دالة store() في BookingController
     const payload = {
-      name: formData.name,
-      customer_name: formData.name, // الحقل الأساسي المطلوبة بـ Laravel
-      user_name: formData.name,
-      
-      service: formData.service || 'خدمة عامة',
-      service_name: formData.service || 'خدمة عامة',
-      
-      price: parseFloat(formData.price) || 0,
+      customer_name: formData.name,
+      service: formData.service,
       amount: parseFloat(formData.price) || 0,
-      
-      date: formData.date,
       booking_date: formData.date,
-      
-      status: formData.status || 'confirmed',
     };
 
     try {
@@ -56,6 +45,9 @@ export default function CreateBookingPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 403 && data.status === 'subscription_required') {
+          throw new Error('⚠️ انتهت الفترة التجريبية، يرجى تفعيل الاشتراك لإضافة حجوزات جديدة.');
+        }
         if (data.errors) {
           const errorMessages = Object.values(data.errors).flat().join(' | ');
           throw new Error(errorMessages);
@@ -63,11 +55,11 @@ export default function CreateBookingPage() {
         throw new Error(data.message || 'فشل في حفظ الحجز');
       }
 
-      // توجيه تلقائي بعد نجاح الحفظ
+      // النجاح والتوجيه لصفحة الحجوزات
       router.push('/bookings');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Save booking error:', err);
-      setError(err.message || 'حدث خطأ أثناء الاتصال بالخادم.');
+      setError(err.message || 'حدث خطأ أثناء حفظ الحجز.');
     } finally {
       setLoading(false);
     }
@@ -86,7 +78,7 @@ export default function CreateBookingPage() {
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm mb-5 font-bold leading-relaxed">
-            ❌ {error}
+            {error}
           </div>
         )}
 
