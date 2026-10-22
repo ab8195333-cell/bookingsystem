@@ -18,7 +18,9 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
+    // تنظيف رابط الـ API لضمان عدم وجود / مكررة في النهاية
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
+    const apiUrl = rawApiUrl.replace(/\/+$/, ''); // يزيل أي Slash في نهاية الرابط تلقائياً
 
     try {
       const res = await fetch(`${apiUrl}/register`, {
