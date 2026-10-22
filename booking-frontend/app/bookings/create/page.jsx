@@ -12,10 +12,10 @@ export default function CreateBookingPage() {
     date: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -23,7 +23,6 @@ export default function CreateBookingPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
     const token = localStorage.getItem('token');
 
-    // إرسال الحقول المتوافقة بالضبط مع دالة store() في BookingController
     const payload = {
       customer_name: formData.name,
       service: formData.service,
@@ -55,9 +54,8 @@ export default function CreateBookingPage() {
         throw new Error(data.message || 'فشل في حفظ الحجز');
       }
 
-      // النجاح والتوجيه لصفحة الحجوزات
       router.push('/bookings');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save booking error:', err);
       setError(err.message || 'حدث خطأ أثناء حفظ الحجز.');
     } finally {
