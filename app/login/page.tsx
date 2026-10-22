@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'formdata-event'; // أو استيراد عادي للـ React
-import React, { useState as useReactState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -59,7 +58,7 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
             <input
-              type="email5"
+              type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
