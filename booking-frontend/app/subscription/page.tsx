@@ -7,23 +7,49 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // تفعيل التجربة المجانية 5 أيام
+  // رابط الباك إند من متغيرات البيئة
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
+
+  // تفعيل التجربة المجانية 5 أيام عبر الاتصال بالـ Backend
   const handleFreeTrial = async () => {
     setLoading(true);
-    // هنا يمكنك إرسال طلب للـ Backend لحفظ أن المستخدم بدأ التجربة المجانية
-    setTimeout(() => {
+
+    try {
+      // جلب الـ token الخاص بالمستخدم المسجل
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${API_URL}/subscribe/trial`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('تم تفعيل التجربة المجانية بنجاح! 🚀');
+        router.push('/bookings'); // التوجيه إلى صفحة الحجوزات
+      } else {
+        // في حال تم تفعيل التجربة مسبقاً أو حدث خطأ
+        alert(data.message || 'حدث خطأ أثناء تفعيل التجربة المجانية.');
+        router.push('/bookings');
+      }
+    } catch (error) {
+      console.error('Error starting free trial:', error);
+      // التوجيه المؤقت لصفحة الحجوزات
+      router.push('/bookings');
+    } finally {
       setLoading(false);
-      router.push('/bookings'); // الانتقال لصفحة الحجوزات مباشرة
-    }, 1000);
+    }
   };
 
-  // تفعيل الاشتراك المدفوع 5$ عبر الـ Script
+  // تفعيل الاشتراك المدفوع 5$ عبر بوابة الدفع / Script
   const handlePaidSubscription = () => {
-    // مكان دمج كود الـ Script الخاص ببوابة الدفع (مثل Stripe أو Paymob أو PayPal)
-    alert('سيتم تحويلك الآن إلى بوابة الدفع الآمنة (Script Payment)');
-    
-    // مثال لوضع السكريبت الخارجي أو استدعاء نافذة الدفع
-    // window.location.href = 'رابط_بوابة_الدفع_أو_السكريبت';
+    alert('سيتم تحويلك الآن إلى بوابة الدفع الآمنة');
+    // يمكنك وضع رابط بوابة الدفع الخاصة بك هنا مستقبلاً
   };
 
   return (
@@ -49,7 +75,7 @@ export default function SubscriptionPage() {
             <button
               onClick={handleFreeTrial}
               disabled={loading}
-              className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition shadow"
+              className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition shadow disabled:opacity-50"
             >
               {loading ? 'جاري التفعيل...' : 'ابدأ التجربة المجانية'}
             </button>
