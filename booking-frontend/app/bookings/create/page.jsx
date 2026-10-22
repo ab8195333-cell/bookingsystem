@@ -1,4 +1,4 @@
-ش'use client';
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,7 +20,6 @@ export default function CreateBookingPage() {
     setLoading(true);
     setError(null);
 
-    // كتابة الرابط بشكل مباشر وصريح لمنع مشاكل Failed to fetch
     const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
     const token = localStorage.getItem('token');
 
@@ -58,7 +57,7 @@ export default function CreateBookingPage() {
       router.push('/bookings');
     } catch (err) {
       console.error('Save booking error:', err);
-      setError(err.message || 'فشل الاتصال بالخادم (Failed to fetch). تأكد أن سيرفر الباك إند يعمل.');
+      setError(err.message || 'فشل الاتصال بالخادم. تأكد من عمل سيرفر الباك إند.');
     } finally {
       setLoading(false);
     }
