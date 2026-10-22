@@ -8,9 +8,11 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // جلب البيانات من الباك إند
+  const fetchBookings = () => {
+    setLoading(true);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
-    const token = localStorage.getItem('token'); // جلب رمز المصادقة إن وجد
+    const token = localStorage.getItem('token');
 
     fetch(`${apiUrl}/bookings`, {
       headers: {
@@ -26,8 +28,8 @@ export default function BookingsPage() {
         return res.json();
       })
       .then((data) => {
-        // إذا كانت البيانات تأتي داخل مصفوفة أو كائن معين
-        setBookings(Array.isArray(data) ? data : data.bookings || []);
+        const list = Array.isArray(data) ? data : data.bookings || [];
+        setBookings(list);
         setLoading(false);
       })
       .catch((err) => {
@@ -35,77 +37,109 @@ export default function BookingsPage() {
         setError(err.message);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchBookings();
   }, []);
 
+  // حساب الإحصائيات تلقائياً
+  const totalCount = bookings.length;
+  const totalPrice = bookings.reduce((sum, item) => {
+    const p = parseFloat(item.price || item.amount || 0);
+    return sum + (isNaN(p) ? 0 : p);
+  }, 0);
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10" dir="rtl">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-100 p-6 md:p-10 font-sans" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* ترويسة الصفحة */}
-        <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        {/* الترويسة العليا */}
+        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">إدارة الحجوزات</h1>
-            <p className="text-sm text-gray-500 mt-1">عرض ومتابعة كافة الحجوزات المسجلة في النظام</p>
+            <h1 className="text-2xl font-black text-slate-800">نظام الحجوزات الذكي 🚀</h1>
+            <p className="text-sm text-slate-500 mt-1 font-medium">عرض ومتابعة كافة الحجوزات والتقرير المالي</p>
           </div>
           <Link
             href="/bookings/create"
-            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow transition flex items-center gap-2"
+            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition flex items-center gap-2"
           >
-            <span>+ حجز جديد</span>
+            <span>+ إضافة حجز جديد</span>
           </Link>
         </div>
 
-        {/* حالات التحميل والأخطاء */}
+        {/* كروت الإحصائيات (الإجمالي وعدد الحجوزات) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-md flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold opacity-90 mb-1">إجمالي المبالغ</p>
+              <h2 className="text-3xl font-black">{totalPrice.toFixed(2)} ريال</h2>
+            </div>
+            <div className="text-4xl opacity-80">💰</div>
+          </div>
+
+          <div className="bg-emerald-600 text-white p-6 rounded-2xl shadow-md flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold opacity-90 mb-1">عدد الحجوزات</p>
+              <h2 className="text-3xl font-black">{totalCount} حجز</h2>
+            </div>
+            <div className="text-4xl opacity-80">📅</div>
+          </div>
+        </div>
+
+        {/* حالة التحميل أو الخطأ */}
         {loading && (
-          <div className="text-center py-20 text-gray-500 font-medium animate-pulse">
-            جاري تحميل الحجوزات... ⏳
+          <div className="bg-white p-12 rounded-2xl text-center text-slate-600 font-bold shadow-sm border border-slate-200 animate-pulse">
+            جاري تحميل وقراءة البيانات من الخادم... ⏳
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-center mb-6">
-            ❌ حدث خطأ: {error}
+          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-center font-bold">
+            ❌ حدث خطأ أثناء تحميل الحجوزات: {error}
           </div>
         )}
 
-        {/* عرض الجدول عند نجاح جلب البيانات */}
+        {/* جدول عرض البيانات */}
         {!loading && !error && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-right border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-xs font-bold uppercase">
-                    <th className="py-4 px-6">رقم الحجز</th>
-                    <th className="py-4 px-6">اسم العميل</th>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 text-sm font-black">
+                    <th className="py-4 px-6">العميل</th>
+                    <th className="py-4 px-6">الخدمة</th>
+                    <th className="py-4 px-6">المبلغ</th>
                     <th className="py-4 px-6">التاريخ</th>
-                    <th className="py-4 px-6">الحالة</th>
                     <th className="py-4 px-6 text-center">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                <tbody className="divide-y divide-slate-100 text-sm text-slate-800 font-medium">
                   {bookings.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-gray-400">
+                      <td colSpan={5} className="py-12 text-center text-slate-400 font-bold">
                         لا توجد حجوزات مسجلة حالياً.
                       </td>
                     </tr>
                   ) : (
-                    bookings.map((booking) => (
-                      <tr key={booking.id} className="hover:bg-gray-50/50 transition">
-                        <td className="py-4 px-6 font-semibold text-blue-600">#{booking.id}</td>
-                        <td className="py-4 px-6">{booking.name || booking.user_name || 'غير متوفر'}</td>
-                        <td className="py-4 px-6 text-gray-500">{booking.date || booking.created_at?.substring(0, 10)}</td>
-                        <td className="py-4 px-6">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            booking.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {booking.status || 'مكتمل'}
-                          </span>
+                    bookings.map((booking, idx) => (
+                      <tr key={booking.id || idx} className="hover:bg-slate-50 transition">
+                        <td className="py-4 px-6 font-bold text-slate-900">
+                          {booking.customer_name || booking.name || booking.user_name || 'غير محدد'}
+                        </td>
+                        <td className="py-4 px-6 text-slate-600">
+                          {booking.service || booking.service_name || 'خدمة عامة'}
+                        </td>
+                        <td className="py-4 px-6 font-black text-emerald-600">
+                          {(parseFloat(booking.price || booking.amount || 0)).toFixed(2)} ريال
+                        </td>
+                        <td className="py-4 px-6 text-slate-500 dir-ltr text-right">
+                          {booking.date || booking.booking_date || booking.created_at?.substring(0, 10)}
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <button className="text-gray-400 hover:text-blue-600 font-medium text-xs bg-gray-100 px-3 py-1.5 rounded-lg transition">
-                            التفاصيل
-                          </button>
+                          <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200">
+                            {booking.status === 'confirmed' ? 'مؤكد' : 'مكتمل'}
+                          </span>
                         </td>
                       </tr>
                     ))
