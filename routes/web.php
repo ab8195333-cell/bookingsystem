@@ -2,10 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
-// مسار رئيسي بسيط لإعلام أي زائر أن الـ API يعمل
 Route::get('/', function () {
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Booking System API Server'
-    ]);
+    return view('welcome');
 });
+
+// أضف هذا المسار لكي يتعرف عليه Sanctum عند عدم وجود توكن ويمنع ظهور الخطأ
+Route::get('/login', function () {
+    return response()->json([
+        'status' => 'error',
+        'message' => 'غير مصرح لك بالوصول. الرجاء تسجيل الدخول.'
+    ], 401);
+})->name('login');
