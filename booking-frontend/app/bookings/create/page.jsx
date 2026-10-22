@@ -50,68 +50,68 @@ export default function CreateBookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10 flex items-center justify-center" dir="rtl">
-      <div className="max-w-xl w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+    <div className="min-h-screen bg-slate-100 p-6 md:p-10 flex items-center justify-center" dir="rtl">
+      <div className="max-w-xl w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
         
-        <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h1 className="text-xl font-bold text-gray-800">إضافة حجز جديد</h1>
-          <Link href="/bookings" className="text-sm text-gray-500 hover:text-gray-700">
+        <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+          <h1 className="text-2xl font-black text-slate-800">إضافة حجز جديد</h1>
+          <Link href="/bookings" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
             ← العودة للحجوزات
           </Link>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-sm mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-sm mb-4 font-medium">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">اسم العميل</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">اسم العميل</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="أدخل اسم العميل"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">الخدمة</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">الخدمة</label>
             <input
               type="text"
               required
               value={formData.service}
               onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="أدخل اسم الخدمة"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">المبلغ (ريال)</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">المبلغ (ريال)</label>
             <input
               type="number"
               step="0.01"
               required
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="0.00"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ الحجز</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">تاريخ الحجز</label>
             <input
               type="date"
               required
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
             />
           </div>
 
@@ -119,13 +119,13 @@ export default function CreateBookingPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow disabled:opacity-50"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/20 disabled:opacity-50"
             >
               {loading ? 'جاري الحفظ...' : 'حفظ الحجز'}
             </button>
             <Link
               href="/bookings"
-              className="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-center"
+              className="px-6 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition text-center"
             >
               إلغاء
             </Link>
