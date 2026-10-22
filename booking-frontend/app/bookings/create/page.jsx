@@ -24,6 +24,24 @@ export default function CreateBookingPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
     const token = localStorage.getItem('token');
 
+    // إرسال الحقول بكافة المسميات المتوقعة من الباك إند لتفادي أخطاء التحقق
+    const payload = {
+      name: formData.name,
+      customer_name: formData.name, // الحقل المطلوب في لارافيل
+      user_name: formData.name,
+      
+      service: formData.service,
+      service_name: formData.service,
+      
+      price: parseFloat(formData.price) || 0,
+      amount: parseFloat(formData.price) || 0,
+      
+      date: formData.date,
+      booking_date: formData.date,
+      
+      status: formData.status || 'confirmed',
+    };
+
     try {
       const response = await fetch(`${apiUrl}/bookings`, {
         method: 'POST',
@@ -32,18 +50,25 @@ export default function CreateBookingPage() {
           'Accept': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.errors) {
+          // عرض جميع أخطاء التحقق القادمة من لارافيل
+          const errorMessages = Object.values(data.errors).flat().join(' | ');
+          throw new Error(errorMessages);
+        }
         throw new Error(data.message || 'فشل في حفظ الحجز');
       }
 
+      // الانتقال التلقائي لصفحة الحجوزات عند نجاح الحفظ
       router.push('/bookings');
     } catch (err) {
-      setError(err.message);
+      console.error('Save booking error:', err);
+      setError(err.message || 'حدث خطأ أثناء حفظ الحجز.');
     } finally {
       setLoading(false);
     }
@@ -53,6 +78,7 @@ export default function CreateBookingPage() {
     <div className="min-h-screen bg-slate-100 p-6 md:p-10 flex items-center justify-center" dir="rtl">
       <div className="max-w-xl w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
         
+        {/* ترويسة النموذج */}
         <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
           <h1 className="text-2xl font-black text-slate-800">إضافة حجز جديد</h1>
           <Link href="/bookings" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
@@ -60,12 +86,14 @@ export default function CreateBookingPage() {
           </Link>
         </div>
 
+        {/* صندوق التنبيه بالأخطاء */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-sm mb-4 font-medium">
-            {error}
+          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm mb-5 font-bold leading-relaxed">
+            ❌ {error}
           </div>
         )}
 
+        {/* نموذج كتابة البيانات */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">اسم العميل</label>
@@ -115,6 +143,7 @@ export default function CreateBookingPage() {
             />
           </div>
 
+          {/* أزرار الحفظ والإلغاء */}
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
