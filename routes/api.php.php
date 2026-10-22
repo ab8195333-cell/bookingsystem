@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\AuthController; // <-- 1. أضف هذا السطر للاستدعاء
+use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 
 /*
@@ -11,10 +11,11 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 
-// 2. أضف مسار تسجيل الدخول العام هنا (خارج مجموعة الحماية)
+// المسارات العامة (تسجيل الدخول وإنشاء حساب جديد)
+Route::post('/register', [AuthController::class, 'register']); // <-- إضافة مسار إنشاء الحساب
 Route::post('/login', [AuthController::class, 'login']);
 
-// مسار لجلب بيانات المستخدم الحالي المصادق عليه (مفيد جداً في Next.js)
+// مسار لجلب بيانات المستخدم الحالي المصادق عليه
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json([
         'status' => 'success',
@@ -22,16 +23,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     ]);
 });
 
-// مسارات النظام المحمية للمستخدمين عبر الـ API
+// مسارات النظام المحمية بـ Sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
     
+    // تسجيل الخروج
+    Route::post('/logout', [AuthController::class, 'logout']);
+
     // عرض الحجوزات
     Route::get('/bookings', [BookingController::class, 'index']);
     
     // إضافة حجز جديد
     Route::post('/bookings', [BookingController::class, 'store']);
     
-    // عرض تفاصيل حجز معين (للتعديل)
+    // عرض تفاصيل حجز معين
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     
     // تعديل حجز
