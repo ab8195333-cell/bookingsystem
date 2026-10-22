@@ -7,6 +7,8 @@ import Link from 'next/link';
 export default function CreateBookingPage() {
   const [formData, setFormData] = useState({
     name: '',
+    service: '',
+    price: '',
     date: '',
     status: 'confirmed',
   });
@@ -39,7 +41,6 @@ export default function CreateBookingPage() {
         throw new Error(data.message || 'فشل في حفظ الحجز');
       }
 
-      // العودة لصفحة الحجوزات بعد النجاح
       router.push('/bookings');
     } catch (err) {
       setError(err.message);
@@ -79,6 +80,31 @@ export default function CreateBookingPage() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">الخدمة</label>
+            <input
+              type="text"
+              required
+              value={formData.service}
+              onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
+              placeholder="أدخل اسم الخدمة"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">المبلغ (ريال)</label>
+            <input
+              type="number"
+              step="0.01"
+              required
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
+              placeholder="0.00"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ الحجز</label>
             <input
               type="date"
@@ -87,18 +113,6 @@ export default function CreateBookingPage() {
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-600"
-            >
-              <option value="confirmed">مؤكد</option>
-              <option value="pending">قيد الانتظار</option>
-            </select>
           </div>
 
           <div className="flex gap-4 pt-4">
