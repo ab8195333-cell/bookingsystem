@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 */
 
 // المسارات العامة (تسجيل الدخول وإنشاء حساب جديد)
-Route::post('/register', [AuthController::class, 'register']); // <-- إضافة مسار إنشاء الحساب
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // مسار لجلب بيانات المستخدم الحالي المصادق عليه
@@ -32,6 +32,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // عرض الحجوزات
     Route::get('/bookings', [BookingController::class, 'index']);
     
+    // التقرير الكامل (يجب أن يكون قبل مسار {id} لكي لا يقرأه لارافيل كـ ID)
+    Route::get('/bookings/report', [BookingController::class, 'downloadFullReport']);
+    
     // إضافة حجز جديد
     Route::post('/bookings', [BookingController::class, 'store']);
     
@@ -43,9 +46,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // حذف حجز
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
-    
-    // التقرير الكامل
-    Route::get('/bookings/report', [BookingController::class, 'downloadFullReport']);
 
     // مسارات الدفع والاشتراكات
     Route::post('/subscription/stripe-checkout', [BookingController::class, 'stripeCheckout']);
