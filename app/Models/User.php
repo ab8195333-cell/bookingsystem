@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -9,17 +10,15 @@ use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * الحقول القابلة للتعبئة (Mass Assignment).
-     * تم إضافة 'username' هنا لحل خطأ General error: 1364.
+     * الحقول القابلة تعبئتها بشكل جماعي.
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'username', 
     ];
 
     /**
