@@ -24,4 +24,5 @@ RUN mkdir -p storage bootstrap/cache \
 
 RUN composer install --no-dev --optimize-autoloader
 
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
+# مسح الكاش وتحديث المسارات ثم تشغيل السيرفر
+CMD php artisan config:clear && php artisan route:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
