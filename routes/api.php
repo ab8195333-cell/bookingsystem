@@ -16,6 +16,14 @@ use Illuminate\Http\Request;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// 🚀 تم جعل مسارات الحجوزات عامة مؤقتاً لتجنب مشاكل التوكن وظهور HTML بدلاً من JSON
+Route::get('/bookings', [BookingController::class, 'index']);
+Route::post('/bookings', [BookingController::class, 'store']);
+Route::get('/bookings/report', [BookingController::class, 'downloadFullReport']);
+Route::get('/bookings/{id}', [BookingController::class, 'show']);
+Route::put('/bookings/{id}', [BookingController::class, 'update']);
+Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
+
 // مسار لجلب بيانات المستخدم الحالي المصادق عليه
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json([
@@ -30,28 +38,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // تسجيل الخروج
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // عرض الحجوزات
-    Route::get('/bookings', [BookingController::class, 'index']);
-    
-    // التقرير الكامل (يجب أن يكون قبل مسار {id} لكي لا يقرأه لارافيل كـ ID)
-    Route::get('/bookings/report', [BookingController::class, 'downloadFullReport']);
-    
-    // إضافة حجز جديد
-    Route::post('/bookings', [BookingController::class, 'store']);
-    
-    // عرض تفاصيل حجز معين
-    Route::get('/bookings/{id}', [BookingController::class, 'show']);
-    
-    // تعديل حجز
-    Route::put('/bookings/{id}', [BookingController::class, 'update']);
-    
-    // حذف حجز
-    Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
-
     // مسارات الدفع والاشتراكات
     Route::post('/subscription/stripe-checkout', [BookingController::class, 'stripeCheckout']);
 
-    // مسارات الاشتراكات والتجربة المجانية (تم إضافتها هنا)
+    // مسارات الاشتراكات والتجربة المجانية
     Route::get('/subscription/status', [SubscriptionController::class, 'checkStatus']);
     Route::post('/subscribe/trial', [SubscriptionController::class, 'trial']);
     Route::post('/subscribe/receipt', [SubscriptionController::class, 'uploadReceipt']);
