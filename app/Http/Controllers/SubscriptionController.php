@@ -10,27 +10,49 @@ use Illuminate\Support\Facades\Storage;
 class SubscriptionController extends Controller
 {
     /**
-     * عرض صفحة الانتظار أو تحويل المستخدم إذا تم التفعيل
+     * التحقق من حالة اشتراك المستخدم (تُستخدم لفلترة التوجيه في الفرونت إند)
      */
-    public function waitingPage()
+    public function checkStatus()
     {
         $user = Auth::user();
 
-        // إذا الاشتراك مفعل يحوله للوحة التحكم
-        if ($user && $user->subscription_status == 'active') {
-            return redirect('/dashboard');
+        if (!$user) {
+            return response()->json(['message' => 'غير مصرح'], 401);
         }
 
-        // إذا مازال قيد المراجعة
-        return view('subscription.waiting');
+        return response()->json([
+            'subscription_status' => $user->subscription_status,
+        ], 200);
     }
 
     /**
-     * معالجة رفع السند
+     * معالجة تفعيل التجربة المجانية (Trial)
+     */
+    public function trial(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'غير مصرح'], 401);
+        }
+
+        // تحديث حالة الاشتراك إلى نشط أو تجريبي حسب نظامك
+        $user->update([
+            'subscription_status' => 'active', // أو 'trial' إذا أردت تمييزها
+        ]);
+
+        return response()->json([
+            'message' => 'تم تفعيل التجربة المجانية بنجاح!',
+            'status' => 'success'
+        ], 200);
+    }
+
+    /**
+     * معالجة رفع السند البنكي
      */
     public function uploadReceipt(Request $request)
     {
-        // التحقق من البيانات
+        // التحقق من البيانات مع إرجاع أخطاء JSON إذا فشل التحقق
         $request->validate([
             'username' => 'required|string|max:50|unique:users,username,' . Auth::id(),
             'receipt'  => 'required|image|mimes:jpeg,png,jpg|max:2048',
@@ -41,9 +63,12 @@ class SubscriptionController extends Controller
 
         $user = Auth::user();
 
+        if (!$user) {
+            return response()->json(['message' => 'غير مصرح'], 401);
+        }
+
         // رفع الصورة
         if ($request->hasFile('receipt')) {
-
             $path = $request->file('receipt')->store('receipts', 'public');
 
             // تحديث بيانات المستخدم
@@ -53,11 +78,14 @@ class SubscriptionController extends Controller
                 'subscription_status' => 'pending',
             ]);
 
-            return redirect()->back()->with('success', 'تم رفع البيانات بنجاح! بانتظار تفعيل الإدارة.');
+            return response()->json([
+                'message' => 'تم رفع السند بنجاح! بانتظار تفعيل الإدارة.',
+                'status' => 'success'
+            ], 200);
         }
 
-        return redirect()->back()->withErrors([
-            'receipt' => 'حدث خطأ أثناء رفع الصورة.'
-        ]);
+        return response()->json([
+            'message' => 'حدث خطأ أثناء رفع الصورة.'
+        ], 422);
     }
 }

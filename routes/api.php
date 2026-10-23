@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Http\Request;
 
 /*
@@ -49,4 +50,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // مسارات الدفع والاشتراكات
     Route::post('/subscription/stripe-checkout', [BookingController::class, 'stripeCheckout']);
+
+    // مسارات الاشتراكات والتجربة المجانية (تم إضافتها هنا)
+    Route::get('/subscription/status', [SubscriptionController::class, 'checkStatus']);
+    Route::post('/subscribe/trial', [SubscriptionController::class, 'trial']);
+    Route::post('/subscribe/receipt', [SubscriptionController::class, 'uploadReceipt']);
 });
