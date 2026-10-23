@@ -20,7 +20,8 @@ export default function CreateBookingPage() {
     setLoading(true);
     setError(null);
 
-    const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
+   // استخدم المسار النسبي للاستفادة من الـ Proxy وتجنب أخطاء CORS
+    const apiUrl = '/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     if (!token) {
