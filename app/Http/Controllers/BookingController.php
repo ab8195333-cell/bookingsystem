@@ -41,20 +41,21 @@ class BookingController extends Controller
     /**
      * إضافة حجز جديد
      */
- public function store(Request $request)
+public function store(Request $request)
 {
-    // طباعة البيانات الواردة للتأكد منها في الـ logs
     \Log::info('Booking request:', $request->all());
 
     try {
         $booking = new \App\Models\Booking();
-        // إعطاء قيم افتراضية مؤقتة لتجنب أي رفض من قاعدة البيانات
-        $booking->customer_name = $request->input('customer_name', 'مفحوص');
-        $booking->phone = $request->input('phone', '0000000000');
-        $booking->booking_date = $request->input('booking_date', now());
+        
+        // مطابقة الحقول تماماً لما يأتي من Next.js
+        $booking->customer_name = $request->input('customer_name') ?? $request->input('name', 'عميل');
+        $booking->service_name  = $request->input('service', service_name ?? 'خدمة عامة');
+        $booking->amount        = $request->input('amount') ?? $request->input('price', 0);
+        $booking->booking_date  = $request->input('booking_date') ?? $request->input('date', now());
         
         if (\Schema::hasColumn('bookings', 'user_id')) {
-            $booking->user_id = 1; // استخدام المستخدم الافتراضي الموجود في قاعدة البيانات
+            $booking->user_id = 1;
         }
         
         $booking->save();
@@ -72,6 +73,7 @@ class BookingController extends Controller
         ], 500);
     }
 }
+
 
     /**
      * جلب بيانات حجز معين للتعديل (بدلاً من عرض صفحة التعديل)
