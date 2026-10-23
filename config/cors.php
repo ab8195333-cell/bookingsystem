@@ -6,8 +6,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // ضع رابط الفرونت إند الخاص بك هنا بدلاً من النجمة ليتوافق مع supports_credentials => true
-    'allowed_origins' => ['https://booking-frontend-3zo0.onrender.com', 'http://localhost:3000'],
+    // السماح لكل النطاقات مؤقتاً لضمان عدم حدوث أي حظر بسبب اختلاف الروابط
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
@@ -17,6 +17,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
-
+    'supports_credentials' => false, // اجعلها false عند استخدام '*' لكي لا يتعارض مع المتصفح
 ];
