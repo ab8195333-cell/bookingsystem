@@ -3,7 +3,7 @@
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['*'], // أو يمكنك وضع رابط الفرونت إند الخاص بك هنا بدلاً من النجمة
+    'allowed_origins' => ['https://booking-frontend-3zo0.onrender.com'],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
