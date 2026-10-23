@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -12,16 +12,23 @@ export default function CreateBookingPage() {
     date: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    // تأكد من أن هذا الرابط هو رابط الباك إند الصحيح الخاص بك على Render
     const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
-    const token = localStorage.getItem('token');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    if (!token) {
+      setError('⚠️ يرجى تسجيل الدخول أولاً قبل محاولة إضافة الحجز.');
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       customer_name: formData.name,
@@ -36,14 +43,22 @@ export default function CreateBookingPage() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
 
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('الخادم لم يستجب بصيغة JSON. تأكد من صحة رابط الباك إند وخلوه من أخطاء السيرفر.');
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('🔑 انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول.');
+        }
         if (response.status === 403 && data.status === 'subscription_required') {
           throw new Error('⚠️ انتهت الفترة التجريبية، يرجى تفعيل الاشتراك لإضافة حجوزات جديدة.');
         }
@@ -51,20 +66,29 @@ export default function CreateBookingPage() {
           const errorMessages = Object.values(data.errors).flat().join(' | ');
           throw new Error(errorMessages);
         }
-        throw new Error(data.message || 'فشل في حفظ الحجز');
+        throw new Error(data.message || 'فشل في حفظ الحجز من الخادم');
       }
 
+      // النجاح والانتقال لقائمة الحجوزات
       router.push('/bookings');
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Save booking error:', err);
-      setError(err.message || 'فشل الاتصال بالخادم. تأكد من عمل سيرفر الباك إند.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('تعذر الاتصال بالخادم. تأكد من أن سيرفر الباك إند يعمل ومتصل بالإنترنت.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100 p-6 md:p-10 flex items-center justify-center" dir="rtl">
+    <div className="min-h-screen bg-slate-100 p-6 md:p-10 flex items-center justify-center font-sans" dir="rtl">
       <div className="max-w-xl w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
         
         <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
@@ -75,8 +99,13 @@ export default function CreateBookingPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm mb-5 font-bold leading-relaxed">
-            ❌ {error}
+          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm mb-5 font-bold leading-relaxed flex flex-col gap-2">
+            <span>❌ {error}</span>
+            {error.includes('تسجيل الدخول') && (
+              <Link href="/login" className="underline font-black text-blue-700">
+                الذهاب لصفحة تسجيل الدخول ←
+              </Link>
+            )}
           </div>
         )}
 
@@ -87,7 +116,7 @@ export default function CreateBookingPage() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => handleInputChange(e, 'name')}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="أدخل اسم العميل"
             />
@@ -99,7 +128,7 @@ export default function CreateBookingPage() {
               type="text"
               required
               value={formData.service}
-              onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+              onChange={(e) => handleInputChange(e, 'service')}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="أدخل اسم الخدمة"
             />
@@ -112,7 +141,7 @@ export default function CreateBookingPage() {
               step="0.01"
               required
               value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              onChange={(e) => handleInputChange(e, 'price')}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="0.00"
             />
@@ -124,7 +153,7 @@ export default function CreateBookingPage() {
               type="date"
               required
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={(e) => handleInputChange(e, 'date')}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
             />
           </div>
