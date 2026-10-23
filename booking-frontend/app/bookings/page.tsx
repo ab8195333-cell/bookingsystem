@@ -15,8 +15,9 @@ export default function BookingsPage() {
     setError(null);
     
     // الرابط المباشر لسيرفر لارافيل
-    const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
+    
     const apiUrl = '/api';
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     try {
       const res = await fetch(`${apiUrl}/bookings`, {
