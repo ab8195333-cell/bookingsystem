@@ -16,7 +16,8 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
+    // استخدام المسار النسبي للـ Proxy لتجنب مشاكل الـ CORS تماماً
+    const apiUrl = '/api';
 
     try {
       const res = await fetch(`${apiUrl}/login`, {
