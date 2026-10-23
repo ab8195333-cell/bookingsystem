@@ -21,7 +21,8 @@ export default function CreateBookingPage() {
     setError(null);
 
    // استخدم المسار النسبي للاستفادة من الـ Proxy وتجنب أخطاء CORS
-    const apiUrl = '/api';
+    // استخدم الرابط المباشر لسيرفر لارافيل على Render
+const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     if (!token) {
