@@ -174,8 +174,8 @@ class BookingController extends Controller
                 ]],
                 'mode' => 'payment',
                 // روابط العودة إلى تطبيق Next.js
-                'success_url' => config('app.frontend_url', 'http://localhost:3000') . '/bookings?payment=success',
-                'cancel_url'  => config('app.frontend_url', 'http://localhost:3000') . '/checkout?payment=cancelled',
+                'success_url' => config('app.frontend_url') . '/bookings?success=true',
+                'cancel_url' => config('app.frontend_url') . '/bookings?canceled=true',
             ]);
 
             return response()->json([
