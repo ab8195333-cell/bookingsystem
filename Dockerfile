@@ -19,15 +19,18 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# 4. صلاحيات المجلدات
-RUN mkdir -p storage bootstrap/cache \
-    && chmod -R 777 storage bootstrap/cache
+# 4. صلاحيات المجلدات وإنشاء ملف SQLite الأساسي
+RUN mkdir -p storage bootstrap/cache database \
+    && touch database/database.sqlite \
+    && chmod -R 777 storage bootstrap/cache database \
+    && chmod 777 database/database.sqlite
 
 # 5. تثبيت الاعتمادات
 RUN composer install --no-dev --optimize-autoloader
 
 # 6. تشغيل الكاش والترحيل ومسح الكاش تماماً عند التشغيل
-CMD php artisan optimize:clear \
+CMD php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');" \
+    && php artisan optimize:clear \
     && composer dump-autoload --optimize \
     && php artisan migrate --force \
     && php artisan serve --host=0.0.0.0 --port=10000
