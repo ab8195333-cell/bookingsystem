@@ -5,7 +5,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\CheckSubscription;
-use App\Http\Middleware\Cors; // <--- 1. استدعاء ملف الـ Cors
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,11 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        
-        // <--- 2. تفعيل الـ CORS على مستوى التطبيق بالكامل لضمان عدم حظر أي طلب
-        $middleware->append(Cors::class);
-
-        // تسجيل الـ Middleware الخاصة بالأدمن والاشتراكات معاً
+        // تسجيل الـ Middleware الخاصة بالأدمن والاشتراكات
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'CheckSubscription' => CheckSubscription::class,
