@@ -18,22 +18,22 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # 3. تحديد مجلد العمل
 WORKDIR /var/www/html
 
-# 4. إنشاء مجلدات التخزين والكاش وإعطائها الصلاحيات أولاً
+# 4. إنشاء مجلدات التخزين والكاش وإعطائها الصلاحيات الكاملة (أولاً وقبل كل شيء)
 RUN mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
 
-# 5. نسخ ملفات الـ composer وتثبيت الحزم بدون سكريبتات تلقائية تمنع البناء
+# 5. نسخ ملفات الـ composer وتثبيت الحزم
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # 6. نسخ باقي ملفات المشروع بالكامل
 COPY . .
 
-# 7. إعادة ضبط الصلاحيات للملفات المنسوخة وتوليد الـ Autoloader بأمان
+# 7. إعادة تأكيد الصلاحيات وتوليد الـ Autoloader بأمان تام
 RUN chmod -R 777 storage bootstrap/cache \
     && composer dump-autoload --optimize --no-scripts
 
-# 8. أمر التشغيل المباشر وتنفيذ الـ Migrations ثم تشغيل السيرفر
+# 8. أمر التشغيل المباشر
 CMD php artisan migrate --force \
     && php artisan config:clear \
     && php artisan cache:clear \
