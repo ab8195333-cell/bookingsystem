@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -10,15 +10,14 @@ export default function LoginPage() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // رابط الـ API الصريح لخدمة الباك إند
     const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
 
     try {
@@ -34,10 +33,9 @@ export default function LoginPage() {
         }),
       });
 
-      // التحقق من نوع الاستجابة قبل محاولة قراءتها كـ JSON
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('تعذر الاتصال بالخادم. الاستجابة ليست بتنسيق JSON، تأكد من أن سيرفر لارافيل يعمل.');
+        throw new Error('تعذر الاتصال بالخادم. الاستجابة ليست بتنسيق JSON.');
       }
 
       const data = await response.json();
@@ -50,7 +48,6 @@ export default function LoginPage() {
         throw new Error(data.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
       }
 
-      // حفظ الـ Token والـ User في localStorage
       const token = data.token || data.access_token || data.data?.token;
       if (token) {
         localStorage.setItem('token', token);
@@ -61,11 +58,14 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(user));
       }
 
-      // التوجيه التلقائي لصفحة الحجوزات عند نجاح الدخول
       router.push('/bookings');
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
-      setError(err.message || 'حدث خطأ غير متوقع أثناء تسجيل الدخول');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('حدث خطأ غير متوقع أثناء تسجيل الدخول');
+      }
     } finally {
       setLoading(false);
     }
@@ -75,20 +75,17 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center font-sans" dir="rtl">
       <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
         
-        {/* الترويسة */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-slate-800 mb-2">مرحباً بك مجدداً 👋</h1>
           <p className="text-sm font-medium text-slate-500">سجل الدخول لإدارة نظام الحجوزات الخاص بك</p>
         </div>
 
-        {/* رسالة الخطأ */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm mb-6 font-bold leading-relaxed">
             ❌ {error}
           </div>
         )}
 
-        {/* النموذج */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">البريد الإلكتروني</label>
@@ -123,7 +120,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* رابط إنشاء حساب جديد */}
         <div className="mt-6 text-center border-t border-slate-100 pt-5 text-sm text-slate-600">
           <span>ليس لديك حساب؟ </span>
           <Link href="/register" className="font-bold text-blue-600 hover:underline">
