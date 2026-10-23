@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api'}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,8 +31,8 @@ export default function LoginPage() {
         throw new Error(data.message || 'فشل تسجيل الدخول، تأكد من البيانات.');
       }
 
-      // حفظ الـ Token في الـ LocalStorage لاستخدامه في الطلبات اللاحقة
-      localStorage.setItem('auth_token', data.token);
+      // 🔑 تم توحيد اسم المفتاح هنا إلى 'token' ليتوافق مع باقي صفحات المشروع
+      localStorage.setItem('token', data.token);
 
       // التوجيه إلى صفحة الحجوزات بعد النجاح
       router.push('/');
@@ -44,12 +44,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4" dir="rtl">
       <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 border border-gray-100">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">تسجيل الدخول للنظام</h2>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm text-center">
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm text-center font-bold">
             {error}
           </div>
         )}
