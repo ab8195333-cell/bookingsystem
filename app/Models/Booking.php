@@ -25,12 +25,12 @@ export default function CreateBookingPage() {
     const token = localStorage.getItem('token');
 
     // إرسال الحقول بالطريقة التي يتوقعها موديل Booking.php بالضبط
-    const payload = {
-      customer_name: formData.name,
-      service_name: formData.service || 'خدمة عامة',
-      amount: parseFloat(formData.price) || 0,
-      booking_date: formData.date,
-      appointment_date: formData.date, // الحقل الإجباري لحل مشكلة Field doesn't have a default value
+ const payload = {
+  customer_name: formData.name,
+  service_name: formData.service || 'خدمة عامة',
+  amount: parseFloat(formData.price) || 0,
+  booking_date: formData.date,
+};
       
       // حقول إضافية احتياطية للمسارات الأخرى
       name: formData.name,
