@@ -38,6 +38,10 @@ jobs:
     - name: Copy .env.example
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
+    # ---> إضافة هذه الخطوة لإنشاء مجلدات الكاش والتخزين المفقودة تلقائياً <---
+    - name: Create Required Directories
+      run: mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache
+
     - name: Install Dependencies
       run: composer install --prefer-dist --no-progress --no-suggest
 
