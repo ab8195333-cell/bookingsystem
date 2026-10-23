@@ -6,7 +6,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    // ضع رابط الفرونت إند الخاص بك هنا بدلاً من النجمة ليتوافق مع supports_credentials => true
+    'allowed_origins' => ['https://booking-frontend-3zo0.onrender.com', 'http://localhost:3000'],
 
     'allowed_origins_patterns' => [],
 
@@ -16,6 +17,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // تم التعديل إلى true لسماح تمرير الـ Bearer Token والـ Headers
+    'supports_credentials' => true,
 
 ];
