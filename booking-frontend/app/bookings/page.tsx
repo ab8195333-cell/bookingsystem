@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -14,10 +16,7 @@ export default function BookingsPage() {
     setLoading(true);
     setError(null);
     
-    // الرابط المباشر لسيرفر لارافيل
-    
-    // استخدم الرابط المباشر لسيرفر لارافيل على Render
-const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
+    const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     try {
@@ -65,6 +64,35 @@ const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
     }
   };
 
+  // 📄 دالة تحميل الحجوزات كملف PDF
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    // عنوان التقرير
+    doc.text("Booking System Report - تقرير الحجوزات", 14, 20);
+
+    // تجهيز بيانات الجدول
+    const tableData = bookings.map((b, index) => [
+      index + 1,
+      b.customer_name || b.name || '-',
+      b.service_name || b.service || '-',
+      `${parseFloat(b.amount || b.price || 0).toFixed(2)} ريال`,
+      b.booking_date || b.date || '-'
+    ]);
+
+    // رسم الجدول باستخدام jspdf-autotable
+    (doc as any).autoTable({
+      startY: 30,
+      head: [['#', 'العميل', 'الخدمة', 'المبلغ', 'التاريخ']],
+      body: tableData,
+      styles: { font: 'helvetica', halign: 'right' },
+      headStyles: { fillColor: [37, 99, 235] } // لون أزرق متناسق مع التصميم
+    });
+
+    // حفظ الملف
+    doc.save('bookings-report.pdf');
+  };
+
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -86,6 +114,16 @@ const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
             >
               🔄 تحديث
             </button>
+
+            {/* 📄 زر تحميل الـ PDF */}
+            <button
+              onClick={downloadPDF}
+              disabled={bookings.length === 0}
+              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl transition text-sm flex items-center gap-2 shadow-lg shadow-emerald-600/20"
+            >
+              <span>📄 تحميل PDF</span>
+            </button>
+
             <Link
               href="/bookings/create"
               className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition flex items-center gap-2 text-sm"
