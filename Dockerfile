@@ -28,9 +28,9 @@ RUN mkdir -p storage bootstrap/cache database \
 # 5. تثبيت الاعتمادات
 RUN composer install --no-dev --optimize-autoloader
 
-# 6. تشغيل الكاش والترحيل ومسح الكاش تماماً عند التشغيل
+# 6. الترتيب الصحيح عند التشغيل: إنشاء الملف، تشغيل المايجريشن أولاً، ثم مسح الكاش وتشغيل السيرفر
 CMD php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');" \
+    && php artisan migrate --force \
     && php artisan optimize:clear \
     && composer dump-autoload --optimize \
-    && php artisan migrate --force \
     && php artisan serve --host=0.0.0.0 --port=10000
