@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -12,10 +12,10 @@ export default function CreateBookingPage() {
     date: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -69,9 +69,13 @@ export default function CreateBookingPage() {
       }
 
       router.push('/bookings');
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Save booking error:', err);
-      setError(err.message || 'تعذر الاتصال بالخادم. تأكد من أن سيرفر الباك إند يعمل.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('تعذر الاتصال بالخادم. تأكد من أن سيرفر الباك إند يعمل.');
+      }
     } finally {
       setLoading(false);
     }
@@ -106,7 +110,7 @@ export default function CreateBookingPage() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="أدخل اسم العميل"
             />
@@ -118,7 +122,7 @@ export default function CreateBookingPage() {
               type="text"
               required
               value={formData.service}
-              onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, service: e.target.value })}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="أدخل اسم الخدمة"
             />
@@ -131,7 +135,7 @@ export default function CreateBookingPage() {
               step="0.01"
               required
               value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: e.target.value })}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
               placeholder="0.00"
             />
@@ -143,7 +147,7 @@ export default function CreateBookingPage() {
               type="date"
               required
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, date: e.target.value })}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
             />
           </div>
