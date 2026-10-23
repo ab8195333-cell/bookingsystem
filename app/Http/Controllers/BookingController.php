@@ -53,10 +53,10 @@ class BookingController extends Controller
         $booking = Booking::create([
             'user_id'          => Auth::id(),
             'customer_name'    => $validatedData['customer_name'],
-            'service_name'     => $validatedData['service'],
+            'service_name'     => $validatedData['service'], // يتطابق مع عمود service_name في Supabase
             'amount'           => $validatedData['amount'],
             'booking_date'     => $validatedData['booking_date'],
-            'appointment_date' => $validatedData['booking_date'],
+            'appointment_date' => $validatedData['booking_date'], // تعبئة العمودين معاً لضمان عدم حدوث خطأ Null
         ]);
 
         return response()->json([
