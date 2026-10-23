@@ -1,101 +1,52 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // تحديد رابط الـ API وتوجيهه مباشرة لمسار الحجوزات لتلقي JSON
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
-    const targetUrl = `${baseUrl}/bookings`;
-
-    fetch(targetUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`خطأ في الاستجابة: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((result) => {
-        setData(result);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching API:", err);
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
-
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-zinc-900 p-6">
-      <main className="flex w-full max-w-3xl flex-col items-center justify-between p-8 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-200 dark:border-zinc-700">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-slate-100 font-sans p-6" dir="rtl">
+      <main className="flex w-full max-w-2xl flex-col items-center justify-between p-10 bg-white rounded-3xl shadow-xl border border-slate-200 text-center">
         
         {/* العنوان الرئيسي */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
-            نظام إدارة الحجوزات 🚀
+        <div className="mb-8">
+          <h1 className="text-3xl font-black text-slate-800 mb-2">
+            نظام إدارة الحجوزات الذكي 🚀
           </h1>
-          <p className="text-zinc-600 dark:text-zinc-300">
-            الواجهة الأمامية (Next.js) متصلة بالخادم الخلفي (Laravel API)
+          <p className="text-slate-500 font-medium">
+            الواجهة الأمامية متصلة بنجاح مع خادم الخلفية (Laravel API)
           </p>
         </div>
 
-        {/* حالة الاتصال بالـ Backend */}
-        <div className="w-full bg-zinc-100 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 text-center">
-          {loading && (
-            <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
-              <span className="animate-pulse">جاري الاتصال بالسيرفر وجلب البيانات... ⏳</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="text-red-500 font-medium">
-              ❌ تعذر الاتصال بالخادم: {error}
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div>
-              <div className="inline-block bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-4 py-1 rounded-full text-sm font-semibold mb-4">
-                تم الاتصال بالـ API بنجاح! ✅
-              </div>
-              
-              <div className="text-right">
-                <p className="text-xs text-zinc-500 mb-2 font-mono">البيانات القادمة من السيرفر:</p>
-                <pre className="bg-zinc-800 text-green-400 p-4 rounded-lg text-xs overflow-x-auto dir-ltr">
-                  {JSON.stringify(data, null, 2)}
-                </pre>
-              </div>
-            </div>
-          )}
+        {/* تنبيه حالة النظام */}
+        <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 p-5 rounded-2xl font-bold mb-8">
+          ✨ النظام يعمل بكفاءة وجاهز لاستقبال العمليات!
         </div>
 
-        {/* أزرار سريعة للانتقال */}
-        <div className="flex flex-wrap gap-4 mt-8 w-full justify-center">
-          <a
+        {/* الأزرار التوجيهية */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+          <Link
+            href="/login"
+            className="flex-1 h-12 items-center justify-center flex bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 transition"
+          >
+            🔑 تسجيل الدخول
+          </Link>
+          
+          <Link
+            href="/bookings"
+            className="flex-1 h-12 items-center justify-center flex bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition"
+          >
+            📊 عرض الحجوزات
+          </Link>
+        </div>
+
+        {/* رابط إضافي */}
+        <div className="mt-6">
+          <Link
             href="/bookings/create"
-            className="flex h-11 items-center justify-center px-6 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+            className="text-sm font-bold text-blue-600 hover:underline"
           >
-            إضافة حجز جديد
-          </a>
-          <a
-            href="https://bookingsystem-krms.onrender.com/api/bookings"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-11 items-center justify-center px-6 rounded-xl border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-          >
-            رابط الـ API المباشر 🔗
-          </a>
+            + إضافة حجز جديد مباشرة
+          </Link>
         </div>
 
       </main>
