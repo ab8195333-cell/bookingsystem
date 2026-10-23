@@ -19,8 +19,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# 4. صلاحيات المجلدات وإنشاء ملف SQLite الأساسي
-RUN mkdir -p storage bootstrap/cache database \
+# 4. صلاحيات المجلدات وإنشاء ملف SQLite
+RUN mkdir -p storage storage/framework/views storage/framework/sessions storage/framework/cache bootstrap/cache database \
     && touch database/database.sqlite \
     && chmod -R 777 storage bootstrap/cache database \
     && chmod 777 database/database.sqlite
@@ -28,9 +28,11 @@ RUN mkdir -p storage bootstrap/cache database \
 # 5. تثبيت الاعتمادات
 RUN composer install --no-dev --optimize-autoloader
 
-# 6. الترتيب الصحيح عند التشغيل: إنشاء الملف، تشغيل المايجريشن أولاً، ثم مسح الكاش وتشغيل السيرفر
-CMD php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');" \
+# 6. التشغيل: إنشاء المفتاح إذا لم يوجد، تنفيذ التهجير، ثم تشغيل الخادم
+CMD php -r "file_exists('.env') || copy('.env.example', '.env');" \
+    && php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');" \
+    && php artisan key:generate --force \
     && php artisan migrate --force \
-    && php artisan optimize:clear \
-    && composer dump-autoload --optimize \
+    && php artisan config:clear \
+    && php artisan route:clear \
     && php artisan serve --host=0.0.0.0 --port=10000
