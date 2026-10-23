@@ -5,136 +5,132 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(null);
 
-    // استخدام المسار النسبي للـ Proxy لتجنب مشاكل الـ CORS تماماً
-    const apiUrl = '/api';
+    // رابط الـ API الصريح لخدمة الباك إند
+    const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
 
     try {
-      const res = await fetch(`${apiUrl}/login`, {
+      const response = await fetch(`${apiUrl}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'بيانات الدخول غير صحيحة.');
+      // التحقق من نوع الاستجابة قبل محاولة قراءتها كـ JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('تعذر الاتصال بالخادم. الاستجابة ليست بتنسيق JSON، تأكد من أن سيرفر لارافيل يعمل.');
       }
 
-      // حفظ الرمز باستخدام access_token القادم من الباك إند والانتقال للصفحة الرئيسية
-      localStorage.setItem('token', data.access_token);
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'حدث خطأ أثناء تسجيل الدخول.');
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.errors) {
+          const errorMessages = Object.values(data.errors).flat().join(' | ');
+          throw new Error(errorMessages);
+        }
+        throw new Error(data.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      }
+
+      // حفظ الـ Token والـ User في localStorage
+      const token = data.token || data.access_token || data.data?.token;
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      
+      const user = data.user || data.data?.user;
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+
+      // التوجيه التلقائي لصفحة الحجوزات عند نجاح الدخول
+      router.push('/bookings');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'حدث خطأ غير متوقع أثناء تسجيل الدخول');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
-      <div className="max-w-md w-full">
-        <div className="bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-100">
-          
-          {/* Header */}
-          <div className="bg-blue-600 py-6 text-center">
-            <h4 className="text-white font-bold text-xl mb-0">مرحباً بك في BOOKINGSAAS</h4>
-          </div>
-
-          {/* Body */}
-          <div className="p-8 bg-white">
-            <h5 className="text-center font-bold mb-6 text-gray-600">تسجيل الدخول</h5>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm text-center font-medium border border-red-100">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني</label>
-                <div className="relative flex items-center">
-                  <span className="absolute right-3 text-gray-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
-                  </span>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pr-10 pl-4 py-2.5 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
-                    placeholder="name@example.com"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">كلمة المرور</label>
-                <div className="relative flex items-center">
-                  <span className="absolute right-3 text-gray-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                  </span>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pr-10 pl-4 py-2.5 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm text-gray-800"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {loading ? 'جاري تسجيل الدخول...' : (
-                    <>
-                      <span>دخول</span>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Register Link */}
-              <div className="text-center pt-4 border-t border-gray-100 mt-6">
-                <p className="text-sm text-gray-500 mb-2">ليس لديك حساب حتى الآن؟</p>
-                <Link
-                  href="/register"
-                  className="w-full py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 text-sm"
-                >
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                  <span>إنشاء حساب جديد (Register)</span>
-                </Link>
-              </div>
-
-            </form>
-          </div>
-
+    <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center font-sans" dir="rtl">
+      <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
+        
+        {/* الترويسة */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-black text-slate-800 mb-2">مرحباً بك مجدداً 👋</h1>
+          <p className="text-sm font-medium text-slate-500">سجل الدخول لإدارة نظام الحجوزات الخاص بك</p>
         </div>
+
+        {/* رسالة الخطأ */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm mb-6 font-bold leading-relaxed">
+            ❌ {error}
+          </div>
+        )}
+
+        {/* النموذج */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">البريد الإلكتروني</label>
+            <input
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition text-left dir-ltr"
+              placeholder="name@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
+            <input
+              type="password"
+              required
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition text-left dir-ltr"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/20 disabled:opacity-50 mt-2"
+          >
+            {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول 🚀'}
+          </button>
+        </form>
+
+        {/* رابط إنشاء حساب جديد */}
+        <div className="mt-6 text-center border-t border-slate-100 pt-5 text-sm text-slate-600">
+          <span>ليس لديك حساب؟ </span>
+          <Link href="/register" className="font-bold text-blue-600 hover:underline">
+            إنشاء حساب جديد
+          </Link>
+        </div>
+
       </div>
     </div>
   );
