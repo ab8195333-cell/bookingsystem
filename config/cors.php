@@ -1,23 +1,13 @@
 <?php
 
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or CORS. This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    */
-
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'], // يمكنك لاحقاً تعديلها لتكون رابط Next.js فقط مثل 'http://localhost:3000'
+    'allowed_origins' => [
+        'https://booking-frontend-3zo0.onrender.com',
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -27,6 +17,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
-
+    'supports_credentials' => false,
 ];
