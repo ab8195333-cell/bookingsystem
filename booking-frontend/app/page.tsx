@@ -1,4 +1,4 @@
-'use client';
+٢-اذكر'use client';
 
 import { useEffect, useState } from 'react';
 
@@ -8,10 +8,17 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // جلب رابط API من متغير البيئة أو استخدام الرابط المباشر
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
+    // تحديد رابط الـ API وتوجيهه مباشرة لمسار الحجوزات لتلقي JSON
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
+    const targetUrl = `${baseUrl}/bookings`;
 
-    fetch(apiUrl)
+    fetch(targetUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`خطأ في الاستجابة: ${res.status}`);
@@ -47,7 +54,7 @@ export default function Home() {
         <div className="w-full bg-zinc-100 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 text-center">
           {loading && (
             <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
-              <span className="animate-pulse">جاري الاتصال بالسيرفر جاري جلب البيانات... ⏳</span>
+              <span className="animate-pulse">جاري الاتصال بالسيرفر وجلب البيانات... ⏳</span>
             </div>
           )}
 
@@ -76,13 +83,13 @@ export default function Home() {
         {/* أزرار سريعة للانتقال */}
         <div className="flex flex-wrap gap-4 mt-8 w-full justify-center">
           <a
-            href="/login"
+            href="/bookings/create"
             className="flex h-11 items-center justify-center px-6 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
           >
-            صفحة تسجيل الدخول
+            إضافة حجز جديد
           </a>
           <a
-            href="https://bookingsystem-krms.onrender.com/api"
+            href="https://bookingsystem-krms.onrender.com/api/bookings"
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-11 items-center justify-center px-6 rounded-xl border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
