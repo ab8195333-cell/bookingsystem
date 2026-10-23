@@ -34,8 +34,8 @@ export default function LoginPage() {
         throw new Error(data.message || 'بيانات الدخول غير صحيحة.');
       }
 
-      // حفظ الرمز والانتقال للصفحة الرئيسية
-      localStorage.setItem('token', data.token);
+      // حفظ الرمز باستخدام access_token القادم من الباك إند والانتقال للصفحة الرئيسية
+      localStorage.setItem('token', data.access_token);
       router.push('/');
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء تسجيل الدخول.');
