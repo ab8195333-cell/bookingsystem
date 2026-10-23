@@ -42,37 +42,36 @@ class BookingController extends Controller
      * إضافة حجز جديد
      */
 public function store(Request $request)
-{
-    \Log::info('Booking request:', $request->all());
+    {
+        \Log::info('Booking request:', $request->all());
 
-    try {
-        $booking = new \App\Models\Booking();
-        
-        // مطابقة الحقول تماماً لما يأتي من Next.js
-        $booking->customer_name = $request->input('customer_name') ?? $request->input('name', 'عميل');
-        $booking->service_name  = $request->input('service', service_name ?? 'خدمة عامة');
-        $booking->amount        = $request->input('amount') ?? $request->input('price', 0);
-        $booking->booking_date  = $request->input('booking_date') ?? $request->input('date', now());
-        
-        if (\Schema::hasColumn('bookings', 'user_id')) {
-            $booking->user_id = 1;
+        try {
+            $booking = new \App\Models\Booking();
+            
+            // مطابقة الحقول تماماً لما يأتي من Next.js (مع قيم افتراضية آمنة)
+            $booking->customer_name = $request->input('customer_name') ?? $request->input('name', 'عميل');
+            $booking->service_name  = $request->input('service_name') ?? $request->input('service', 'خدمة عامة');
+            $booking->amount        = $request->input('amount') ?? $request->input('price', 0);
+            $booking->booking_date  = $request->input('booking_date') ?? $request->input('date', now());
+            
+            // ربط الحجز بالمستخدم الحالي أو استخدام المستخدم الافتراضي (1)
+            $booking->user_id = Auth::id() ?? 1;
+            
+            $booking->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'تم الحجز بنجاح',
+                'data' => $booking
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
-        
-        $booking->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم الحجز بنجاح',
-            'data' => $booking
-        ], 201);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ], 500);
     }
-}
 
 
     /**
