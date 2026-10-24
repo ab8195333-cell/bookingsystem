@@ -8,12 +8,8 @@ function BookingHeader() {
 describe('Booking Component', () => {
   it('renders the booking heading correctly', () => {
     render(<BookingHeader />)
-    const heading = screen.getByText('نظام الحجوزات')
+    // نص غير موجود مطلقاً ليتسبب في فشل الاختبار
+    const heading = screen.getByText('نص غير موجود سينشئ خطأ')
     expect(heading).toBeInTheDocument()
   })
 })
-
-public function test_example()
-{
-    $this->assertTrue(false); // هذا سيفشل الاختبار قطعاً
-}
