@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -11,6 +12,7 @@ export default function BookingsPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -46,16 +48,14 @@ export default function BookingsPage() {
         throw new Error(json.message || 'فشل في جلب الحجوزات');
       }
 
-      if (json.status === 'success' && json.data) {
-        setBookings(json.data.bookings || []);
-        setBookingsCount(json.data.bookingsCount || 0);
-        setTotalAmount(parseFloat(json.data.totalAmount) || 0);
-      } else if (Array.isArray(json)) {
-        setBookings(json);
-        setBookingsCount(json.length);
-        const total = json.reduce((acc: number, item: any) => acc + (parseFloat(item.amount) || 0), 0);
-        setTotalAmount(total);
-      }
+      // معالجة البيانات بناءً على هيكلة الـ JSON المستقبلة
+      const dataList = json.data?.bookings || (Array.isArray(json) ? json : json.data || []);
+      setBookings(dataList);
+      setBookingsCount(json.data?.bookingsCount || dataList.length);
+      
+      const total = dataList.reduce((acc: number, item: any) => acc + (parseFloat(item.amount || item.price) || 0), 0);
+      setTotalAmount(json.data?.totalAmount ? parseFloat(json.data.totalAmount) : total);
+
     } catch (err: any) {
       console.error('Fetch error:', err);
       setError(err.message || 'حدث خطأ في الاتصال بالخادم (Failed to fetch)');
@@ -64,14 +64,45 @@ export default function BookingsPage() {
     }
   };
 
+  // 🗑️ دالة حذف الحجز
+  const handleDelete = async (id: number) => {
+    if (!confirm('هل أنت متأكد من رغبتك في حذف هذا الحجز نهائياً؟')) return;
+
+    const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    try {
+      const res = await fetch(`${apiUrl}/bookings/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('فشل في حذف الحجز من السيرفر');
+      }
+
+      // تحديث القائمة محلياً فوراً بدون الحاجة لإعادة تحميل الصفحة
+      const updatedBookings = bookings.filter((b) => b.id !== id);
+      setBookings(updatedBookings);
+      setBookingsCount(updatedBookings.length);
+      
+      const newTotal = updatedBookings.reduce((acc: number, item: any) => acc + (parseFloat(item.amount || item.price) || 0), 0);
+      setTotalAmount(newTotal);
+
+    } catch (err: any) {
+      alert(err.message || 'حدث خطأ أثناء محاولة الحذف');
+    }
+  };
+
   // 📄 دالة تحميل الحجوزات كملف PDF
   const downloadPDF = () => {
     const doc = new jsPDF();
 
-    // عنوان التقرير
     doc.text("Booking System Report - تقرير الحجوزات", 14, 20);
 
-    // تجهيز بيانات الجدول
     const tableData = bookings.map((b, index) => [
       index + 1,
       b.customer_name || b.name || '-',
@@ -80,16 +111,14 @@ export default function BookingsPage() {
       b.booking_date || b.date || '-'
     ]);
 
-    // رسم الجدول باستخدام jspdf-autotable
     (doc as any).autoTable({
       startY: 30,
       head: [['#', 'العميل', 'الخدمة', 'المبلغ', 'التاريخ']],
       body: tableData,
       styles: { font: 'helvetica', halign: 'right' },
-      headStyles: { fillColor: [37, 99, 235] } // لون أزرق متناسق مع التصميم
+      headStyles: { fillColor: [37, 99, 235] }
     });
 
-    // حفظ الملف
     doc.save('bookings-report.pdf');
   };
 
@@ -115,7 +144,6 @@ export default function BookingsPage() {
               🔄 تحديث
             </button>
 
-            {/* 📄 زر تحميل الـ PDF */}
             <button
               onClick={downloadPDF}
               disabled={bookings.length === 0}
@@ -181,12 +209,13 @@ export default function BookingsPage() {
                     <th className="py-4 px-6">الخدمة</th>
                     <th className="py-4 px-6">المبلغ</th>
                     <th className="py-4 px-6">التاريخ</th>
+                    <th className="py-4 px-6 text-center">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-800 font-medium">
                   {bookings.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-slate-400 font-bold">
+                      <td colSpan={5} className="py-12 text-center text-slate-400 font-bold">
                         لا توجد حجوزات مسجلة حالياً.
                       </td>
                     </tr>
@@ -199,6 +228,22 @@ export default function BookingsPage() {
                           {parseFloat(b.amount || b.price || 0).toFixed(2)} ريال
                         </td>
                         <td className="py-4 px-6 text-slate-500 dir-ltr text-right">{b.booking_date || b.date}</td>
+                        
+                        {/* عمود أزرار التعديل والحذف */}
+                        <td className="py-4 px-6 flex justify-center gap-2">
+                          <button
+                            onClick={() => router.push(`/bookings/edit/${b.id}`)}
+                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                          >
+                            تعديل ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDelete(b.id)}
+                            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                          >
+                            حذف 🗑️
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
