@@ -14,6 +14,7 @@ class Booking extends Model
         'service_name',
         'amount',
         'booking_date',
+        'appointment_date', // إضافة الحقل الإجباري هنا لكي يسمح لارافيل بحفظه
         'status',
     ];
 }

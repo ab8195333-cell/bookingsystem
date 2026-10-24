@@ -24,45 +24,40 @@ class BookingController extends Controller
     }
 
     /**
-     * حفظ حجز جديد (مرن جداً لقبول أي أسماء حقول قادمة من الفرونت إند)
+     * حفظ حجز جديد في قاعدة البيانات Supabase
      */
     public function store(Request $request)
     {
         try {
-            // التقاط البيانات بأكثر من احتمال لاسم الحقل لضمان عدم حدوث خطأ
+            // التقاط البيانات المرسلة
             $customerName = $request->input('customer_name') ?? $request->input('name');
-            $serviceName = $request->input('service') ?? $request->input('service_name');
-            $amount = $request->input('amount') ?? $request->input('price');
-            $bookingDate = $request->input('booking_date') ?? $request->input('appointment_date');
+            $serviceName = $request->input('service_name') ?? $request->input('service');
+            $amount = $request->input('amount') ?? $request->input('price') ?? 0;
+            $dateInput = $request->input('booking_date') ?? $request->input('appointment_date') ?? now()->toDateString();
 
-            // التحقق السريع من الحقول الأساسية
-            if (!$customerName || !$serviceName || !$amount || !$bookingDate) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'خطأ في البيانات المرسلة',
-                    'message' => 'الرجاء التأكد من إدخال اسم العميل، الخدمة، المبلغ، والتاريخ.'
-                ], 422);
-            }
+            // تجهيز صيغة التاريخ المطلوبة لعمود appointment_date الإجباري في Supabase
+            $appointmentDate = date('Y-m-d H:i:s', strtotime($dateInput));
 
-            // إنشاء الحجز في قاعدة البيانات (Supabase)
+            // إنشاء الحجز وتمرير كل الحقول المطلوبة لقاعدة البيانات
             $booking = Booking::create([
-                'customer_name' => $customerName,
-                'service_name' => $serviceName,
-                'amount' => $amount,
-                'booking_date' => $bookingDate,
-                'status' => $request->input('status', 'confirmed'),
+                'customer_name'    => $customerName,
+                'service_name'     => $serviceName,
+                'amount'           => $amount,
+                'booking_date'     => $dateInput,
+                'appointment_date' => $appointmentDate, // تزويد العمود الإجباري بالحقل المطلوب
+                'status'           => $request->input('status', 'confirmed'),
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم حفظ الحجز بنجاح ✅',
-                'data' => $booking
+                'data'    => $booking
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'حدث خطأ أثناء حفظ الحجز',
+                'error'   => 'حدث خطأ أثناء حفظ الحجز',
                 'message' => $e->getMessage()
             ], 500);
         }
