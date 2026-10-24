@@ -38,10 +38,18 @@ jobs:
       - name: Install Composer Dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Prepare Environment
+      - name: Prepare Environment & Run Migrations
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing_db
+          DB_USERNAME: root
+          DB_PASSWORD: password
         run: |
           cp .env.example .env
           php artisan key:generate
+          php artisan migrate --force
 
       - name: Run Artisan Tests (Strict Failure)
         env:
@@ -63,7 +71,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./booking-frontend
+        working-directory: booking-frontend
 
     steps:
       - name: Checkout Code
@@ -82,8 +90,7 @@ jobs:
       - name: Run ESLint Check
         run: npm run lint
 
-      # --- الخطوة المضافة لتشغيل الاختبارات حقيقة ---
-      - name: Run Frontend Tests (Jest)
+      - name: Run Frontend Tests
         run: npm test -- --passWithNoTests
 
       - name: Build Next.js Application
