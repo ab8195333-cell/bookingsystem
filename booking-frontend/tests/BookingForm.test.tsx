@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+himport { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 function BookingHeader() {
