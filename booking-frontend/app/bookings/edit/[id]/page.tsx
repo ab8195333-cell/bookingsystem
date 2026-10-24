@@ -24,14 +24,29 @@ export default function EditBookingPage({ params }: { params: Promise<{ id: stri
 
   const apiUrl = 'https://bookingsystem-krms.onrender.com/api';
 
-  // جلب بيانات الحجز القديمة لتعبئة الحقول
+  // جلب بيانات الحجز القديمة مع إرسال التوكن
   useEffect(() => {
     const fetchBooking = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
       try {
-        const res = await fetch(`${apiUrl}/bookings/${id}`);
+        const res = await fetch(`${apiUrl}/bookings/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+        });
+
         const json = await res.json();
 
-        if (!res.ok) throw new Error(json.message || 'فشل في جلب بيانات الحجز');
+        if (!res.ok) {
+          if (res.status === 401) {
+            throw new Error('🔑 غير مصرح: يرجى تسجيل الدخول أولاً.');
+          }
+          throw new Error(json.message || 'فشل في جلب بيانات الحجز');
+        }
 
         const bookingData = json.data || json;
         setFormData({
@@ -51,11 +66,13 @@ export default function EditBookingPage({ params }: { params: Promise<{ id: stri
     fetchBooking();
   }, [id]);
 
-  // إرسال التعديلات
+  // إرسال التعديلات مع إرسال التوكن
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     const payload = {
       customer_name: formData.name,
@@ -72,6 +89,7 @@ export default function EditBookingPage({ params }: { params: Promise<{ id: stri
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
       });
