@@ -12,3 +12,8 @@ describe('Booking Component', () => {
     expect(heading).toBeInTheDocument()
   })
 })
+
+public function test_example()
+{
+    $this->assertTrue(false); // هذا سيفشل الاختبار قطعاً
+}
