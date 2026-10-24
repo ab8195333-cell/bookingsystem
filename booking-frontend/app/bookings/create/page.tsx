@@ -10,7 +10,7 @@ export default function CreateBookingPage() {
     service: '',
     price: '',
     date: '',
-    status: 'pending',
+    status: 'confirmed',
   });
 
   const [loading, setLoading] = useState(false);
@@ -27,13 +27,19 @@ export default function CreateBookingPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
+    // إرسال الحقول بكلا التسميتين لضمان قبول Validation لارافيل
+    const parsedAmount = parseFloat(formData.price);
+    const validAmount = isNaN(parsedAmount) ? 10 : parsedAmount;
+
     const payload = {
       customer_name: formData.name,
+      service: formData.service || 'خدمة عامة',
       service_name: formData.service || 'خدمة عامة',
-      amount: parseFloat(formData.price) || 0,
-      appointment_date: formData.date ? `${formData.date} 00:00:00` : new Date().toISOString().slice(0, 19).replace('T', ' '),
+      amount: validAmount,
+      price: validAmount,
       booking_date: formData.date,
-      status: formData.status || 'pending',
+      appointment_date: formData.date ? `${formData.date} 00:00:00` : new Date().toISOString().slice(0, 10),
+      status: formData.status || 'confirmed',
     };
 
     try {
@@ -54,14 +60,13 @@ export default function CreateBookingPage() {
           const errorMessages = Object.values(data.errors).flat().join(' | ');
           throw new Error(errorMessages);
         }
-        throw new Error(data.message || 'فشل في حفظ الحجز');
+        throw new Error(data.message || data.error || 'فشل في حفظ الحجز');
       }
 
-      // إظهار تنبيه النجاح والتوجيه لصفحة الحجوزات
       setSuccess(true);
       setTimeout(() => {
         router.push('/bookings');
-      }, 1500);
+      }, 1200);
 
     } catch (err: any) {
       console.error('Save booking error:', err);
@@ -85,7 +90,7 @@ export default function CreateBookingPage() {
 
         {/* تنبيه النجاح */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-sm font-bold text-center animate-bounce">
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-sm font-bold text-center animate-pulse">
             ✅ تم حفظ الحجز في قاعدة البيانات بنجاح! جاري تحويلك...
           </div>
         )}
@@ -132,7 +137,7 @@ export default function CreateBookingPage() {
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
               required
               className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
-              placeholder="0.00"
+              placeholder="100"
             />
           </div>
 
