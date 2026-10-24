@@ -1,84 +1,99 @@
-name: Full-Stack CI Pipeline (Laravel & Next.js)
+<?php
 
-on:
-  push:
-    branches: [ main, master, feature/* ]
-  pull_request:
-    branches: [ main, master ]
+namespace Tests\Feature;
 
-jobs:
-  # ==========================================
-  # 1. اختبارات الباك إند (Laravel)
-  # ==========================================
-  laravel-backend-tests:
-    name: Backend Tests (Laravel)
-    runs-on: ubuntu-latest
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+class ProfileTest extends TestCase
+{
+    use RefreshDatabase;
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
-          coverage: none
+    public function test_profile_page_is_displayed(): void
+    {
+        $user = User::factory()->create();
 
-      - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+        $response = $this
+            ->actingAs($user)
+            ->get('/profile');
 
-      - name: Prepare Environment & SQLite Database
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-          touch database/database.sqlite
-          php artisan migrate --force
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
+        $response->assertOk();
+    }
 
-      - name: Run Artisan Tests (Strict Failure)
-        run: php artisan test
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
-          SESSION_DRIVER: array
-          QUEUE_CONNECTION: sync
-          CACHE_STORE: array
+    public function test_profile_information_can_be_updated(): void
+    {
+        $user = User::factory()->create();
 
-  # ==========================================
-  # 2. اختبارات الفرونت إند (Next.js)
-  # ==========================================
-  nextjs-frontend-tests:
-    name: Frontend Tests & Build (Next.js)
-    runs-on: ubuntu-latest
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
 
-    defaults:
-      run:
-        working-directory: booking-frontend
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+        $user->refresh();
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: booking-frontend/package-lock.json
+        $this->assertSame('Test User', $user->name);
+        $this->assertSame('test@example.com', $user->email);
+        $this->assertNull($user->email_verified_at);
+    }
 
-      - name: Install Dependencies
-        run: npm ci
+    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    {
+        $user = User::factory()->create();
 
-      - name: Run ESLint Check
-        run: npm run lint
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'email' => $user->email,
+            ]);
 
-      - name: Run Frontend Tests
-        run: npm test -- --passWithNoTests
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
 
-      - name: Build Next.js Application
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: https://bookingsystem-krms.onrender.com/api
+        $this->assertNotNull($user->refresh()->email_verified_at);
+    }
+
+    public function test_user_can_delete_their_account(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->delete('/profile', [
+                'password' => 'password',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+        $this->assertNull($user->fresh());
+    }
+
+    public function test_correct_password_must_be_provided_to_delete_account(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->delete('/profile', [
+                'password' => 'wrong-password',
+            ]);
+
+        $response
+            ->assertSessionHasErrorsIn('userDeletion', 'password')
+            ->assertRedirect('/profile');
+
+        $this->assertNotNull($user->fresh());
+    }
+}
