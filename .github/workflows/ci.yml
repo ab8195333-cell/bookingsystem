@@ -1,13 +1,17 @@
-Name: Laravel CI Pipeline
+name: Full-Stack CI Pipeline (Laravel & Next.js)
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feature/* ]
   pull_request:
     branches: [ main, master ]
 
 jobs:
-  test:
+  # ==========================================
+  # 1. اختبارات الباك إند (Laravel + MySQL)
+  # ==========================================
+  laravel-backend-tests:
+    name: Backend Tests (Laravel)
     runs-on: ubuntu-latest
 
     services:
@@ -21,36 +25,68 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    # 1. سحب الكود من المستودع
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    # 2. إعداد بيئة PHP
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.3'
-        extensions: mbstring, dom, fileinfo, mysql, pdo
-        coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, pdo
+          coverage: none
 
-    # 3. تثبيت حزم Composer
-    - name: Install Composer dependencies
-      run: composer install --prefer-dist --no-progress --no-suggest
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
 
-    # 4. ضبط إعدادات البيئة للاختبار
-    - name: Prepare Environment
-      run: |
-        cp .env.example .env
-        php artisan key:generate
+      - name: Prepare Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
 
-    # 5. تشغيل الاختبارات مع ضمان نجاح العملية
-    - name: Run Tests
-      env:
-        DB_CONNECTION: mysql
-        DB_HOST: 127.0.0.1
-        DB_PORT: 3306
-        DB_DATABASE: testing_db
-        DB_USERNAME: root
-        DB_PASSWORD: password
-        SESSION_DRIVER: array
-      run: php artisan test 
+      - name: Run Artisan Tests (Strict Failure)
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing_db
+          DB_USERNAME: root
+          DB_PASSWORD: password
+          SESSION_DRIVER: array
+        run: php artisan test
+
+  # ==========================================
+  # 2. اختبارات الفرونت إند (Next.js + Jest)
+  # ==========================================
+  nextjs-frontend-tests:
+    name: Frontend Tests & Build (Next.js)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./booking-frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: booking-frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint Check
+        run: npm run lint
+
+      # --- الخطوة المضافة لتشغيل الاختبارات حقيقة ---
+      - name: Run Frontend Tests (Jest)
+        run: npm test -- --passWithNoTests
+
+      - name: Build Next.js Application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://bookingsystem-krms.onrender.com/api
