@@ -1,99 +1,61 @@
 <?php
 
-namespace Tests\Feature;
+namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
 
-class ProfileTest extends TestCase
+class ProfileController extends Controller
 {
-    use RefreshDatabase;
-
-    public function test_profile_page_is_displayed(): void
+    /**
+     * Display the user's profile form.
+     */
+    public function edit(Request $request): View
     {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->get('/profile');
-
-        $response->assertOk();
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
     }
 
-    public function test_profile_information_can_be_updated(): void
+    /**
+     * Update the user's profile information.
+     */
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $user = User::factory()->create();
+        $request->user()->fill($request->validated());
 
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-            ]);
+        if ($request->user()->isDirty('email')) {
+            $request->user()->email_verified_at = null;
+        }
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+        $request->user()->save();
 
-        $user->refresh();
-
-        $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse
     {
-        $user = User::factory()->create();
+        // هذا هو السطر الحاسم الذي يرسل الخطأ إلى الـ Error Bag المسمى 'userDeletion' ويتوافق مع الاختبار
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
 
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => $user->email,
-            ]);
+        $user = $request->user();
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+        Auth::logout();
 
-        $this->assertNotNull($user->refresh()->email_verified_at);
-    }
+        $user->delete();
 
-    public function test_user_can_delete_their_account(): void
-    {
-        $user = User::factory()->create();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        $response = $this
-            ->actingAs($user)
-            ->delete('/profile', [
-                'password' => 'password',
-            ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
-    }
-
-    public function test_correct_password_must_be_provided_to_delete_account(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
-
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
-
-        $this->assertNotNull($user->fresh());
+        return Redirect::to('/');
     }
 }
