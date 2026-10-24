@@ -1,4 +1,4 @@
-<?phppp
+<?php
 
 namespace Tests\Feature;
 
