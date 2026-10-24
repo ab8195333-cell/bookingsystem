@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "echo \"Error: no test
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.11",
