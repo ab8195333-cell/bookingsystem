@@ -57,7 +57,7 @@ jobs:
         DB_DATABASE: testing
         DB_USERNAME: postgres
         DB_PASSWORD: secret_password
-      run: vendor/bin/phpunit || true
+      run: vendor/bin/phpunit 
 
   docker-build:
     needs: laravel-tests
