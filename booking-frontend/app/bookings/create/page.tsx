@@ -10,10 +10,11 @@ export default function CreateBookingPage() {
     service: '',
     price: '',
     date: '',
-    status: 'confirmed',
+    status: 'pending',
   });
 
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -21,6 +22,7 @@ export default function CreateBookingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bookingsystem-krms.onrender.com/api';
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -29,8 +31,9 @@ export default function CreateBookingPage() {
       customer_name: formData.name,
       service_name: formData.service || 'خدمة عامة',
       amount: parseFloat(formData.price) || 0,
+      appointment_date: formData.date ? `${formData.date} 00:00:00` : new Date().toISOString().slice(0, 19).replace('T', ' '),
       booking_date: formData.date,
-      status: formData.status || 'confirmed',
+      status: formData.status || 'pending',
     };
 
     try {
@@ -54,7 +57,12 @@ export default function CreateBookingPage() {
         throw new Error(data.message || 'فشل في حفظ الحجز');
       }
 
-      router.push('/bookings');
+      // إظهار تنبيه النجاح والتوجيه لصفحة الحجوزات
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/bookings');
+      }, 1500);
+
     } catch (err: any) {
       console.error('Save booking error:', err);
       setError(err.message || 'حدث خطأ أثناء حفظ الحجز.');
@@ -75,7 +83,14 @@ export default function CreateBookingPage() {
           </Link>
         </div>
 
-        {/* صندوق التنبيه بالأخطاء */}
+        {/* تنبيه النجاح */}
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-sm font-bold text-center animate-bounce">
+            ✅ تم حفظ الحجز في قاعدة البيانات بنجاح! جاري تحويلك...
+          </div>
+        )}
+
+        {/* تنبيه الخطأ */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm font-semibold">
             ❌ {error}
@@ -92,7 +107,7 @@ export default function CreateBookingPage() {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
               className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
-              placeholder="أدخل اسم العميل ثلاثياً"
+              placeholder="أدخل اسم العميل"
             />
           </div>
 
@@ -134,10 +149,10 @@ export default function CreateBookingPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || success}
             className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold p-4 rounded-2xl shadow-lg transition duration-200 disabled:opacity-50 text-base"
           >
-            {loading ? 'جاري حفظ الحجز...' : 'حفظ الحجز في النظام'}
+            {loading ? 'جاري حفظ الحجز...' : success ? 'تم الحفظ ✅' : 'حفظ الحجز في النظام'}
           </button>
         </form>
       </div>
