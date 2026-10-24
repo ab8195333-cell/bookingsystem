@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -93,12 +95,9 @@ export default function BookingsPage() {
     }
   };
 
-  // 📄 دالة تحميل الحجوزات كملف PDF بشكل آمن
-  const downloadPDF = async () => {
+  // 📄 دالة تحميل الحجوزات كملف PDF
+  const downloadPDF = () => {
     try {
-      const jsPDF = (await import('jspdf')).default;
-      await import('jspdf-autotable');
-
       const doc = new jsPDF();
 
       doc.text("Booking System Report - تقرير الحجوزات", 14, 20);
@@ -111,7 +110,8 @@ export default function BookingsPage() {
         b.booking_date || b.date || '-'
       ]);
 
-      (doc as any).autoTable({
+      // استخدام autoTable المباشر
+      autoTable(doc, {
         startY: 30,
         head: [['#', 'العميل', 'الخدمة', 'المبلغ', 'التاريخ']],
         body: tableData,
@@ -120,9 +120,9 @@ export default function BookingsPage() {
       });
 
       doc.save('bookings-report.pdf');
-    } catch (err) {
+    } catch (err: any) {
       console.error('PDF generation error:', err);
-      alert('حدث خطأ أثناء تحميل ملف الـ PDF');
+      alert('حدث خطأ أثناء تحميل ملف الـ PDF: ' + (err.message || 'خطأ غير معروف'));
     }
   };
 
