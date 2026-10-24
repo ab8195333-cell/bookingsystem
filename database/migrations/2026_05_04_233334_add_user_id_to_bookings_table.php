@@ -12,19 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            // 1. إضافة عمود user_id إذا لم يكن موجوداً
-            if (!Schema::hasColumn('bookings', 'user_id')) {
-                $table->unsignedBigInteger('user_id')->after('id')->nullable();
-                
-                // إضافة الربط (Foreign Key) لضمان علاقة صحيحة مع جدول المستخدمين
-                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            }
-
-            // 2. حل مشكلة حقل الإيميل: نجعله يقبل قيمة فارغة (Nullable)
-            // لتجنب خطأ "Field 'email' doesn't have a default value"
-            if (Schema::hasColumn('bookings', 'email')) {
-                $table->string('email')->nullable()->change();
-            }
+            // إضافة عمود user_id لربط الحجز بالمستخدم، وجعله يقبل القيم الفارغة مؤقتاً لكي لا يحدث خطأ مع الحجوزات القديمة
+            $table->unsignedBigInteger('user_id')->nullable()->after('id');
+            
+            // (اختياري ولكن أفضل) ربط علاقة مفتاح أجنبي مع جدول users
+            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
@@ -34,15 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            // تراجع عن التعديلات في حال الحاجة
-            if (Schema::hasColumn('bookings', 'user_id')) {
-                $table->dropForeign(['user_id']);
-                $table->dropColumn('user_id');
-            }
-            
-            if (Schema::hasColumn('bookings', 'email')) {
-                $table->string('email')->nullable(false)->change();
-            }
+            $table->dropColumn('user_id');
         });
     }
 };

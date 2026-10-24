@@ -10,11 +10,12 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'customer_name',
-        'service_name',
-        'amount',
-        'booking_date',
-        'appointment_date', // إضافة الحقل الإجباري هنا لكي يسمح لارافيل بحفظه
-        'status',
+        'user_id',          // ربط الحجز بالمستخدم الحالي
+        'customer_name',    // اسم العميل
+        'service_name',     // اسم الخدمة
+        'amount',           // المبلغ
+        'booking_date',     // تاريخ الحجز
+        'appointment_date', // تاريخ الموعد (إجباري في قاعدة البيانات)
+        'status',           // حالة الحجز
     ];
 }

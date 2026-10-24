@@ -16,14 +16,6 @@ use Illuminate\Http\Request;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// 🚀 تم جعل مسارات الحجوزات عامة مؤقتاً لتجنب مشاكل التوكن وظهور HTML بدلاً من JSON
-Route::get('/bookings', [BookingController::class, 'index']);
-Route::post('/bookings', [BookingController::class, 'store']);
-Route::get('/bookings/report', [BookingController::class, 'downloadFullReport']);
-Route::get('/bookings/{id}', [BookingController::class, 'show']);
-Route::put('/bookings/{id}', [BookingController::class, 'update']);
-Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
-
 // مسار لجلب بيانات المستخدم الحالي المصادق عليه
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json([
@@ -32,7 +24,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     ]);
 });
 
-// مسارات النظام المحمية بـ Sanctum
+// مسارات الحجوزات المحمية بـ Sanctum (كل مستخدم يرى ويدير حجوزاته فقط)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('/bookings/report', [BookingController::class, 'downloadFullReport']);
+    Route::get('/bookings/{id}', [BookingController::class, 'show']);
+    Route::put('/bookings/{id}', [BookingController::class, 'update']);
+    Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
+});
+
+// مسارات النظام الأخرى المحمية بـ Sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
     
     // تسجيل الخروج
