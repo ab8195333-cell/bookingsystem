@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -48,7 +46,6 @@ export default function BookingsPage() {
         throw new Error(json.message || 'فشل في جلب الحجوزات');
       }
 
-      // معالجة البيانات بناءً على هيكلة الـ JSON المستقبلة
       const dataList = json.data?.bookings || (Array.isArray(json) ? json : json.data || []);
       setBookings(dataList);
       setBookingsCount(json.data?.bookingsCount || dataList.length);
@@ -84,7 +81,6 @@ export default function BookingsPage() {
         throw new Error('فشل في حذف الحجز من السيرفر');
       }
 
-      // تحديث القائمة محلياً فوراً بدون الحاجة لإعادة تحميل الصفحة
       const updatedBookings = bookings.filter((b) => b.id !== id);
       setBookings(updatedBookings);
       setBookingsCount(updatedBookings.length);
@@ -97,29 +93,37 @@ export default function BookingsPage() {
     }
   };
 
-  // 📄 دالة تحميل الحجوزات كملف PDF
-  const downloadPDF = () => {
-    const doc = new jsPDF();
+  // 📄 دالة تحميل الحجوزات كملف PDF بشكل آمن
+  const downloadPDF = async () => {
+    try {
+      const jsPDF = (await import('jspdf')).default;
+      await import('jspdf-autotable');
 
-    doc.text("Booking System Report - تقرير الحجوزات", 14, 20);
+      const doc = new jsPDF();
 
-    const tableData = bookings.map((b, index) => [
-      index + 1,
-      b.customer_name || b.name || '-',
-      b.service_name || b.service || '-',
-      `${parseFloat(b.amount || b.price || 0).toFixed(2)} ريال`,
-      b.booking_date || b.date || '-'
-    ]);
+      doc.text("Booking System Report - تقرير الحجوزات", 14, 20);
 
-    (doc as any).autoTable({
-      startY: 30,
-      head: [['#', 'العميل', 'الخدمة', 'المبلغ', 'التاريخ']],
-      body: tableData,
-      styles: { font: 'helvetica', halign: 'right' },
-      headStyles: { fillColor: [37, 99, 235] }
-    });
+      const tableData = bookings.map((b, index) => [
+        index + 1,
+        b.customer_name || b.name || '-',
+        b.service_name || b.service || '-',
+        `${parseFloat(b.amount || b.price || 0).toFixed(2)} ريال`,
+        b.booking_date || b.date || '-'
+      ]);
 
-    doc.save('bookings-report.pdf');
+      (doc as any).autoTable({
+        startY: 30,
+        head: [['#', 'العميل', 'الخدمة', 'المبلغ', 'التاريخ']],
+        body: tableData,
+        styles: { font: 'helvetica', halign: 'right' },
+        headStyles: { fillColor: [37, 99, 235] }
+      });
+
+      doc.save('bookings-report.pdf');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('حدث خطأ أثناء تحميل ملف الـ PDF');
+    }
   };
 
   useEffect(() => {
