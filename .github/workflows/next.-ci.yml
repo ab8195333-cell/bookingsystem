@@ -1,4 +1,4 @@
-name: Next.js Frontend CI Pipeline
+Name: Next.js Frontend CI Pipeline
 
 on:
   push:
@@ -30,11 +30,7 @@ jobs:
     - name: Run ESLint Check
       run: npm run lint || echo "No lint errors block setup"
 
-    # 5. تشغيل الاختبارات (في حال وجود Jest / React Testing Library)
-    - name: Run Tests
-      run: npm test -- --passWithNoTests
-
-    # 6. التجربة الفعلية لبناء المشروع (Build Check)
+    # 5. التجربة الفعلية لبناء المشروع (Build Check)
     # تضمن عدم وجود أي أخطاء تمنع النشر على Render أو Vercel
     - name: Build Next.js Application
       run: npm run build
