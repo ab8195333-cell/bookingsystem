@@ -1,4 +1,4 @@
-'usee client';
+'use client';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,7 @@ export default function LoginPage() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(nu);
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
