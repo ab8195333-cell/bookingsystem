@@ -10,7 +10,7 @@ export default function LoginPage() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(nu);
+  const [error, setError] = useState<string | null>(n);
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
