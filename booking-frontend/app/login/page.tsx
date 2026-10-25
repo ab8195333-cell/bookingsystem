@@ -39,7 +39,7 @@ export default function LoginPage() {
       }
 
       // التوجيه إلى لوحة التحكم
-      router.push('/dashboard');
+      router.push('/bookings');
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء الاتصال بالسيرفر');
     } finally {
