@@ -2,9 +2,9 @@ Name: Next.js Frontend CI Pipeline
 
 on:
   push:
-    branches: [ main, master ] # تشغيل المسار عند الـ Push إلى هذه الفروع
+    branches: [ main, master,feature/add-tests ] # تشغيل المسار عند الـ Push إلى هذه الفروع
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master,feature/add-tests ]
 
 jobs:
   build-and-test:
