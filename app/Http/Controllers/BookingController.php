@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use Illuminate\Validation\ValidationException;
 
-class BookingController extends Controller
-{
+class BookingController extends Controller{
+
     // عرض حجوزات المستخدم المصادق عليه فقط
     public function index(Request $request)
     {
@@ -32,18 +32,18 @@ class BookingController extends Controller
     }
 
     // حفظ حجز جديد مرتبط بالمستخدم الحالي مع التحقق من البيانات
-    public function store(Request $request)
+   public function store(Request $request)
     {
         try {
-            // التحقق من صحة البيانات الواردة
+            // التحقق من صحة البيانات الواردة مع جعل الحقول الأساسية إجبارية
             $validated = $request->validate([
                 'customer_name'    => 'nullable|string|max:255',
                 'name'             => 'nullable|string|max:255',
-                'service_name'     => 'nullable|string|max:255',
+                'service_name'     => 'required|string|max:255', // أصبحت إجبارية للاختبار
                 'service'          => 'nullable|string|max:255',
                 'amount'           => 'nullable|numeric|min:0',
                 'price'            => 'nullable|numeric|min:0',
-                'booking_date'     => 'nullable|date',
+                'booking_date'     => 'required|date',           // أصبحت إجبارية للاختبار
                 'appointment_date' => 'nullable|date',
                 'status'           => 'nullable|string|in:pending,confirmed,cancelled',
             ]);
@@ -55,7 +55,7 @@ class BookingController extends Controller
                 'customer_name'    => $validated['customer_name'] ?? $validated['name'] ?? $user->name,
                 'service_name'     => $validated['service_name'] ?? $validated['service'] ?? 'General Service',
                 'amount'           => $validated['amount'] ?? $validated['price'] ?? 0,
-                'booking_date'     => $validated['booking_date'] ?? now()->toDateString(),
+                'booking_date'     => $validated['booking_date'],
                 'appointment_date' => $validated['appointment_date'] ?? now(),
                 'status'           => $validated['status'] ?? 'confirmed',
             ]);
@@ -81,70 +81,66 @@ class BookingController extends Controller
     }
 
     // عرض حجز معين والتأكد أنه يخص المستخدم نفسه
-    public function show(Request $request, $id)
+ // عرض تفاصيل حجز معين مع التحقق من الملكية
+   // عرض تفاصيل حجز معين مع التحقق من الملكية
+    public function show(Request $request, Booking $booking)
     {
-        $booking = Booking::where('id', $id)
-                          ->where('user_id', $request->user()->id)
-                          ->firstOrFail();
-
-        return response()->json([
-            'success' => true, 
-            'data' => $booking
-        ], 200);
-    }
-
-    // تحديث حجز يخص المستخدم فقط بشكل آمن
-    public function update(Request $request, $id)
-    {
-        try {
-            $booking = Booking::where('id', $id)
-                              ->where('user_id', $request->user()->id)
-                              ->firstOrFail();
-
-            // التحقق من البيانات المسموح بتحديثها فقط (منع التلاعب بـ user_id)
-            $validated = $request->validate([
-                'customer_name'    => 'sometimes|string|max:255',
-                'service_name'     => 'sometimes|string|max:255',
-                'amount'           => 'sometimes|numeric|min:0',
-                'booking_date'     => 'sometimes|date',
-                'appointment_date' => 'sometimes|date',
-                'status'           => 'sometimes|string|in:pending,confirmed,cancelled',
-            ]);
-
-            $booking->update($validated);
-
-            return response()->json([
-                'success' => true, 
-                'message' => 'تم التحديث بنجاح', 
-                'data' => $booking
-            ], 200);
-
-        } catch (ValidationException $e) {
+        if ((int) $booking->user_id !== (int) $request->user()->id) {
             return response()->json([
                 'success' => false,
-                'message' => 'خطأ في التحقق من البيانات',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false, 
-                'message' => $e->getMessage()
-            ], 500);
+                'message' => 'غير مخول بالوصول إلى هذا الحجز'
+            ], 403);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => $booking
+        ]);
     }
 
-    // حذف حجز يخص المستخدم فقط
-    public function destroy(Request $request, $id)
+    // تحديث الحجز مع التحقق من الملكية
+    public function update(Request $request, Booking $booking)
     {
-        $booking = Booking::where('id', $id)
-                          ->where('user_id', $request->user()->id)
-                          ->firstOrFail();
-                          
+        if ((int) $booking->user_id !== (int) $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مخول بتعديل هذا الحجز'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'customer_name'    => 'nullable|string|max:255',
+            'service_name'     => 'sometimes|required|string|max:255',
+            'amount'           => 'nullable|numeric|min:0',
+            'booking_date'     => 'sometimes|required|date',
+            'appointment_date' => 'nullable|date',
+            'status'           => 'nullable|string|in:pending,confirmed,cancelled',
+        ]);
+
+        $booking->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث الحجز بنجاح',
+            'data' => $booking
+        ]);
+    }
+
+    // حذف الحجز مع التحقق من الملكية
+    public function destroy(Request $request, Booking $booking)
+    {
+        if ((int) $booking->user_id !== (int) $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مخول بحذف هذا الحجز'
+            ], 403);
+        }
+
         $booking->delete();
 
         return response()->json([
-            'success' => true, 
-            'message' => 'تم الحذف بنجاح'
-        ], 200);
+            'success' => true,
+            'message' => 'تم حذف الحجز بنجاح'
+        ]);
     }
 }
